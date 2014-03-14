@@ -1,0 +1,6 @@
+Gender: M
+Bday-Month: 7
+Bday-Day: 14
+Bday-Year: 1997
+Jobs: Champion of the Candy Kingdom
+Education: Wizard School

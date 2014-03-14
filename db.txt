@@ -1,0 +1,24 @@
+Finn the Human: enchiridion
+	Princess Bubblegum
+	Lumpy Space Princess
+	Jake
+	Vincent
+Jake: mysandwich
+	Princess Bubblegum
+	Lumpy Space Princess
+	Finn the Human
+	Vincent
+Princess Bubblegum: science4Ever
+	Lumpy Space Princess
+	Finn the Human
+	Jake
+	Vincent
+Lumpy Space Princess: whateverits2009
+	Princess Bubblegum
+	Finn the Human
+	Jake
+Vincent: prometheus
+	Jake
+	Princess Bubblegum
+	[H]Finn the Human
+Archer: guest

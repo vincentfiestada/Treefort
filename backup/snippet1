@@ -1,0 +1,34 @@
+newfriendslist = IControlCenter.database.getEntryByID(friend.getFriendID())['friends']
+				for i in range(len(newfriendslist)):
+					if oldusername in newfriendslist[i]:
+						newfriendslist.pop(i)
+						break
+				## build the name that is to be listed
+				## retrieve corresponding friendship from other user
+				for x in IControlCenter.userRoster[friend.getFriendID()].getFriends():
+					if x.getFriendID() == uid:
+						friendX = x
+						break
+				thingToAppend = list()
+				friendstat = friendX.getStatus()
+				if friendstat == "Requested":
+					thingToAppend.append("[R]")
+				elif friendstat == "Pending":
+					thingToAppend.append("[P]")
+				elif friendstat == "Close Friend":
+					thingToAppend.append("[C]")
+				elif friendstat == "Hidden Updates":
+					thingToAppend.append("[H]")
+				elif friendstat == "Blocked":
+					thingToAppend.append("[B]")
+
+				friendgroups = friendX.getGroups()
+				if len(friendgroups) > 0: ## if in at least one group, append the list of groups
+					barsep = "|"
+					grouplist = barsep.join(friendgroups)
+					thingToAppend.append(grouplist)
+					thingToAppend.append(">>")
+				thingToAppend.append(username)
+				blankSep = ""
+				newfriendslist.append(blankSep.join(thingToAppend))
+				IControlCenter.database.editEntryByID(friend.getFriendID(), friends = newfriendslist)

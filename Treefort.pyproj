@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{4d682260-4720-4d4c-81d6-f91831c419c3}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>main.py</StartupFile>
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
+    <InterpreterVersion>2.7</InterpreterVersion>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    <IsWindowsApplication>False</IsWindowsApplication>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <ItemGroup>
+    <Compile Include="controlcenter.py" />
+    <Content Include="controlcenter.pyc" />
+    <Content Include="db.txt" />
+    <Compile Include="conversation.py" />
+    <Compile Include="friendship.py" />
+    <Content Include="db_conv.txt" />
+    <Content Include="db_feed.txt" />
+    <Content Include="friendship.pyc" />
+    <Compile Include="group.py" />
+    <Content Include="group.pyc" />
+    <Compile Include="main.py" />
+    <Compile Include="status.py" />
+    <Compile Include="terminal.py" />
+    <Content Include="Treefort.pyproj" />
+    <Compile Include="user.py" />
+    <Content Include="user.pyc" />
+    <Compile Include="userproxy.py" />
+    <Content Include="userproxy.pyc" />
+    <Content Include="backup\db.txt" />
+    <Compile Include="backup\main.py" />
+    <Content Include="backup\snippet1" />
+    <Content Include="img\calendar.gif" />
+    <Content Include="img\defaultpic.gif" />
+    <Content Include="img\female.gif" />
+    <Content Include="img\idcard.gif" />
+    <Content Include="img\key.gif" />
+    <Content Include="img\logo.gif" />
+    <Content Include="img\logo_small.gif" />
+    <Content Include="img\logo_transparent.gif" />
+    <Content Include="img\male.gif" />
+    <Content Include="img\persona.gif" />
+    <Content Include="img\plus.gif" />
+    <Content Include="img\sliders.gif" />
+    <Content Include="img\user_login.gif" />
+    <Content Include="img\wrench.gif" />
+    <Content Include="backup\users\Finn the Human\info.txt" />
+    <Content Include="backup\users\Finn the Human\profile.gif" />
+    <Content Include="backup\users\Jake the Dog\info.txt" />
+    <Content Include="backup\users\Jake the Dog\profile.gif" />
+    <Content Include="backup\users\Lumpy Space Princess\info.txt" />
+    <Content Include="backup\users\Lumpy Space Princess\profile.gif" />
+    <Content Include="backup\users\Princess Bubblegum\info.txt" />
+    <Content Include="backup\users\Princess Bubblegum\profile.gif" />
+    <Content Include="users\Finn the Human\info.txt" />
+    <Content Include="users\Finn the Human\profile.gif" />
+    <Content Include="users\Jake\info.txt" />
+    <Content Include="users\Jake\profile.gif" />
+    <Content Include="users\Lumpy Space Princess\info.txt" />
+    <Content Include="users\Lumpy Space Princess\profile.gif" />
+    <Content Include="users\Princess Bubblegum\info.txt" />
+    <Content Include="users\Princess Bubblegum\profile.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="backup" />
+    <Folder Include="backup\users\" />
+    <Folder Include="backup\users\Finn the Human" />
+    <Folder Include="backup\users\Jake the Dog" />
+    <Folder Include="backup\users\Lumpy Space Princess" />
+    <Folder Include="backup\users\Princess Bubblegum" />
+    <Folder Include="img" />
+    <Folder Include="users\" />
+    <Folder Include="users\Finn the Human" />
+    <Folder Include="users\Jake" />
+    <Folder Include="users\Lumpy Space Princess" />
+    <Folder Include="users\Princess Bubblegum" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="{9a7a9026-48c1-4688-9d5d-e5699d47d074}\2.7" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
+</Project>
