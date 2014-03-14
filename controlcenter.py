@@ -538,9 +538,16 @@ class IControlCenter:
 					statusRoster.append(status)
 			## reset status database and export statuses
 			IControlCenter.database_feed.clearDict()
+			## only export the latest 10,000 statuses
+			## so the file won't get too large; and to prevent the system
+			## from slowing down
+			exportedStatusCount = 0
 			for s in reversed(statusRoster): ## so the latest will be on top of the file
+				if exportedStatusCount == 10000:
+					break
 				try:
 					IControlCenter.database_feed.insert(poster = self.getUserById(s.getPoster()).getUsername(), timestamp = str(s.getRawTime()), text = s.getText(), attachments = s.getAttachments(), comments = list(dict(commentator = self.getUserById(c.getPoster()).getUsername(), text = c.getText()) for c in s.getComments()), up = list(self.getUserById(k).getUsername() for k in s.getThumbsUps()), down = list(self.getUserById(k).getUsername() for k in s.getThumbsDowns()))
+					exportedStatusCount += 1
 				except:
 					continue
 			IControlCenter.database_feed.exportDB()

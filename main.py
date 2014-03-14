@@ -1,5 +1,5 @@
 from Tkinter import *
-from ttk import Frame
+from ttk import Frame, Combobox
 from controlcenter import *
 import tkMessageBox, tkFileDialog
 
@@ -7,7 +7,6 @@ from userproxy import *
 
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 600
-WINDOW_RELIEF = "sunken"
 DATABASE_FILENAME = "db.txt"
 DATABASE_CONV_FILENAME ="db_conv.txt"
 DATABASE_FEED_FILENAME = "db_feed.txt"
@@ -34,8 +33,8 @@ mainWindow.title("Tree Fort")
 mainWindow.geometry(str(WINDOW_WIDTH)+"x"+str(WINDOW_HEIGHT))
 windowPanes = PanedWindow(mainWindow)
 windowPanes.pack(fill=BOTH, expand=True)
-adminFrame = Frame(windowPanes, relief=WINDOW_RELIEF)
-userFrame = Frame(windowPanes, relief=WINDOW_RELIEF)
+adminFrame = Frame(windowPanes, relief=FLAT)
+userFrame = Frame(windowPanes, relief=FLAT)
 windowPanes.add(adminFrame, width=WINDOW_WIDTH*0.2)
 windowPanes.add(userFrame, width=WINDOW_WIDTH*0.8)
 
@@ -66,7 +65,7 @@ def newUser(info):
 		'gender'].get(), bday = bdayDict)
 
 def logInOut():
-	loginoutwin = LoginWindow(cc.getSelected(), cc)
+	loginoutwin = LoginWindow(cc.getSelected(), cc, updateAwesomesauceControls)
 	del loginoutwin
 
 class SignUpWindow: ##This one isn't a singleton. More than one can be opened at any time
@@ -111,20 +110,20 @@ class SignUpWindow: ##This one isn't a singleton. More than one can be opened at
 		self.usernameLabel = Label(self.frame2, text = "Username: ", font = font1)
 		self.usernameLabel.pack(side = LEFT)
 		self.info['username'] = StringVar()
-		self.usernameEntry = Entry(self.frame2, font = font2, width = 32, textvariable = self.info['username'])
-		self.usernameEntry.pack(side = LEFT)
+		self.usernameEntry = Entry(self.frame2, font = font2, width = 32, textvariable = self.info['username'], relief = GROOVE)
+		self.usernameEntry.pack(side = LEFT, fill = X, expand = True)
 		self.passwordImg = Label(self.frame3, image = SignUpWindow.keyIcon)
 		self.passwordImg.pack(side = LEFT)
 		self.passwordLabel = Label(self.frame3, text = "Password: ", font = font1)
 		self.passwordLabel.pack(side = LEFT)
 		self.info['password'] = StringVar()
-		self.passwordEntry = Entry(self.frame3, font = font2, width = 32, textvariable = self.info['password'], show = '*')
-		self.passwordEntry.pack(side = LEFT)
+		self.passwordEntry = Entry(self.frame3, font = font2, width = 32, textvariable = self.info['password'], show = '*', relief = GROOVE)
+		self.passwordEntry.pack(side = LEFT, fill = X, expand = True)
 		self.passwordLabel2 = Label(self.frame35, text = "Retype Password: ", font = font1)
 		self.passwordLabel2.pack(side = LEFT)
 		self.info['password-2'] = StringVar()
-		self.passwordEntry2 = Entry(self.frame35, font = font2, width = 32, textvariable = self.info['password-2'], show = '*')
-		self.passwordEntry2.pack(side = LEFT)
+		self.passwordEntry2 = Entry(self.frame35, font = font2, width = 32, textvariable = self.info['password-2'], show = '*', relief = GROOVE)
+		self.passwordEntry2.pack(side = LEFT, fill = X, expand = True)
 		self.info['gender'] = StringVar()
 		self.info['gender'].set("M")
 		self.genderLabel = Label(self.frame4, text = "Gender: ", font = font1)
@@ -143,21 +142,21 @@ class SignUpWindow: ##This one isn't a singleton. More than one can be opened at
 		self.bdayLabel.pack(side = LEFT)
 		self.info['bday'] = dict()
 		self.info['bday']['month'] = StringVar()
-		self.bdaymonthSpinner = Spinbox(self.frame5, values = MONTHS, font = font2, textvariable = self.info['bday']['month'], width=10, wrap = True)
+		self.bdaymonthSpinner = Spinbox(self.frame5, values = MONTHS, font = font2, textvariable = self.info['bday']['month'], width=10, wrap = True, relief = GROOVE)
 		self.bdaymonthSpinner.pack(side = LEFT)
 		self.info['bday']['day'] = StringVar()
-		self.bdaydaySpinner = Spinbox(self.frame5, from_ = 1, to=31, font = font2, textvariable = self.info['bday']['day'], width=2, wrap = True)
+		self.bdaydaySpinner = Spinbox(self.frame5, from_ = 1, to=31, font = font2, textvariable = self.info['bday']['day'], width=2, wrap = True, relief = GROOVE)
 		self.bdaydaySpinner.pack(side = LEFT)
 		self.info['bday']['year'] = StringVar()
 		## make use of tm_year, imported by the user.py file
 		currentDate = localtime()
-		self.bdayyearSpinner = Spinbox(self.frame5, from_ = currentDate.tm_year-150, to=currentDate.tm_year, font = font2, textvariable = self.info['bday']['year'], width=4)
+		self.bdayyearSpinner = Spinbox(self.frame5, from_ = currentDate.tm_year-150, to=currentDate.tm_year, font = font2, textvariable = self.info['bday']['year'], width=4, relief = GROOVE)
 		self.bdayyearSpinner.pack(side = LEFT)
 		self.info['bday']['year'].set(str(currentDate.tm_year))
 		self.info['bday']['month'].set(MONTHS[currentDate.tm_mon-1])
 		self.info['bday']['day'].set(str(currentDate.tm_mday))
-		submitButton = Button(self.frame6, text = "Submit", fg = "#ffffff", activeforeground = "#ffffff", bg = "dark green", activebackground = "dark green", font = font1, command = self.submit)
-		cancelButton = Button(self.frame6, text = "Cancel", fg = "#ffffff", activeforeground = "#ffffff", bg = "dark red", activebackground = "dark red", font = font1, command = self.cancel)
+		submitButton = Button(self.frame6, text = "Submit", fg = "#ffffff", activeforeground = "#ffffff", bg = "dark green", activebackground = "dark green", font = font1, command = self.submit, relief = GROOVE)
+		cancelButton = Button(self.frame6, text = "Cancel", fg = "#ffffff", activeforeground = "#ffffff", bg = "dark red", activebackground = "dark red", font = font1, command = self.cancel, relief = GROOVE)
 		cancelButton.pack(side = RIGHT)
 		submitButton.pack(side = RIGHT)
 		
@@ -265,24 +264,25 @@ class LoginWindow: ## A singleton Window class
 	loginUsernameLabelImg.pack(side = LEFT)
 	loginUsernameLabelTxt = Label(loginWidgetFrame1, text = "Username: ", font=font1)
 	loginUsernameLabelTxt.pack(side = LEFT)
-	loginUsernameBox = Entry(loginWidgetFrame1, font=font2, relief = WINDOW_RELIEF, textvariable = loginusername)
+	loginUsernameBox = Entry(loginWidgetFrame1, font=font2, textvariable = loginusername, relief = GROOVE)
 	loginUsernameBox.pack(side = LEFT, expand = True)
 	loginPasswordLabelImg = Label(loginWidgetFrame2, image = keyIcon)
 	loginPasswordLabelImg.pack(side = LEFT)
 	loginPasswordLabelTxt = Label(loginWidgetFrame2, text = "    Password: ", font=font1)
 	loginPasswordLabelTxt.pack(side = LEFT)
-	loginPasswordBox = Entry(loginWidgetFrame2, font=font2, relief = WINDOW_RELIEF, show = '*', textvariable = loginpassword)
+	loginPasswordBox = Entry(loginWidgetFrame2, font=font2, show = '*', textvariable = loginpassword, relief = GROOVE)
 	loginPasswordBox.pack(side = LEFT, expand = True)
-	loginSubmitCredButton = Button(loginWidgetFrame3, text = "Submit", font=font1, bg = "dark green", fg = "#ffffff", activebackground = "dark green", activeforeground = "#ffffff")
-	loginCancelButton = Button(loginWidgetFrame3, text = "Cancel", font=font1, bg = "dark red", fg = "#ffffff", activebackground = "dark red", activeforeground = "#ffffff", command = loginwindow.withdraw)
+	loginSubmitCredButton = Button(loginWidgetFrame3, text = "Submit", font=font1, bg = "dark green", fg = "#ffffff", activebackground = "dark green", activeforeground = "#ffffff", relief = GROOVE)
+	loginCancelButton = Button(loginWidgetFrame3, text = "Cancel", font=font1, bg = "dark red", fg = "#ffffff", activebackground = "dark red", activeforeground = "#ffffff", command = loginwindow.withdraw, relief = GROOVE)
 	loginCancelButton.pack(side = RIGHT)
 	loginSubmitCredButton.pack(side = RIGHT)
 	loginwindow.withdraw()
 	loginwindow.protocol("WM_DELETE_WINDOW", loginwindow.withdraw)
 	## 'controlcenter' argument must be a Control Center object
-	def __init__(self, selectedUser, controlcenter):		
+	def __init__(self, selectedUser, controlcenter, postcommand = None):		
 		self.linkedCC = controlcenter
 		self.selectedUser = selectedUser
+		self.postcommand = postcommand
 		if self.selectedUser == None:
 			def_input_username = ""
 		else:
@@ -302,18 +302,19 @@ class LoginWindow: ## A singleton Window class
 			if selectedUser != None:
 				self.linkedCC.logoutUser(self.selectedUser.getUserID())
 				LoginWindow.loginwindow.withdraw()
-				updateAwesomesauceControls(None)
+				self.postcommand()
 			else:
-				tkMessageBox.showerror("Log out Failed", "No user is selected.")
+				tkMessageBox.showinfo("Log out Failed", "No user is selected.")
 
 	def submit(self, event):
 		LoginWindow.loginwindow.withdraw()
-		opstat = self.linkedCC.loginUser(LoginWindow.loginusername.get(), LoginWindow.loginpassword.get())
-		if opstat == "SUCCESS":
-			self.linkedCC.setSelected(self.linkedCC.getUserByName(LoginWindow.loginusername.get()).getUserID())
-			updateAwesomesauceControls(None)
+		resp = self.linkedCC.loginUser(LoginWindow.loginusername.get(), LoginWindow.loginpassword.get())
+		if resp == "SUCCESS":
+			if self.postcommand != None:
+				self.postcommand()
 		else:
-			tkMessageBox.showerror("Login Fail", opstat)
+			tkMessageBox.showinfo("Login Failed", resp)
+		return
 
 class ConversationWindow:
 	messageIcon = PhotoImage(file = "img/message.gif")
@@ -331,9 +332,9 @@ class ConversationWindow:
 	title.pack(side = LEFT)
 	panes = PanedWindow(frame1)
 	panes.pack(side = TOP, fill = BOTH, expand = True)
-	conversationListPane = Frame(panes, relief = WINDOW_RELIEF)
-	conversationDetailsPane = PanedWindow(panes, relief = WINDOW_RELIEF)
-	newConversationButton = Button(conversationListPane, text = "New Conversation", font = font2, bg = "#2F54FF", activebackground = "#2F54FF", fg = "#ffffff", activeforeground = "#ffffff")
+	conversationListPane = Frame(panes, relief = FLAT)
+	conversationDetailsPane = PanedWindow(panes, relief = FLAT)
+	newConversationButton = Button(conversationListPane, text = "New Conversation", font = font2, bg = "#2F54FF", activebackground = "#2F54FF", fg = "#ffffff", activeforeground = "#ffffff", relief = GROOVE)
 	newConversationButton.pack(side = TOP, fill = X)
 	panes.add(conversationListPane, width = (700-28)*0.3)
 	panes.add(conversationDetailsPane, width = (700-28)*0.7)
@@ -355,13 +356,13 @@ class ConversationWindow:
 	newMessageLabel.pack(side = LEFT)
 	newMessageBox = Entry(messagesControlFrame_subframe1, font = font5, textvariable = newMessageText)
 	newMessageBox.pack(side = LEFT, fill = X, expand = True)
-	sendMessageButton = Button(messagesControlFrame_subframe2, text = "Send", font = font2)
+	sendMessageButton = Button(messagesControlFrame_subframe2, text = "Send", font = font2, relief = GROOVE)
 	sendMessageButton.pack(side = RIGHT)
-	exitConversationButton = Button(conversationsControlFrame, text = "Exit Conversation", font = font2, fg = "#D30C2A", activeforeground = "#D30C2A")
+	exitConversationButton = Button(conversationsControlFrame, text = "Exit Conversation", font = font2, fg = "#D30C2A", activeforeground = "#D30C2A", relief = GROOVE)
 	exitConversationButton.pack(side = LEFT)
-	deleteMessagesButton = Button(conversationsControlFrame, text = "Delete Messages", font = font2, fg = "#D30C2A", activeforeground = "#D30C2A")
+	deleteMessagesButton = Button(conversationsControlFrame, text = "Delete Messages", font = font2, fg = "#D30C2A", activeforeground = "#D30C2A", relief = GROOVE)
 	deleteMessagesButton.pack(side = LEFT)
-	inviteFriendButton = Button(conversationsControlFrame, text = "Invite Friend", font = font2, fg = "#1C3DB6", activeforeground = "#1C3DB6")
+	inviteFriendButton = Button(conversationsControlFrame, text = "Invite Friend", font = font2, fg = "#1C3DB6", activeforeground = "#1C3DB6", relief = GROOVE)
 	inviteFriendButton.pack(side = LEFT)
 
 	messagesDisplayFrame = Frame(conversationDetailsPane)
@@ -387,7 +388,7 @@ class ConversationWindow:
 	newConversationMembersListBox.pack(side = TOP, fill = BOTH, expand = True)
 	newConversationMembersScrollBar.config(command = newConversationMembersListBox.yview)
 	newConversationMembersListBox.insert(END, "No friends")
-	newConversationBoxSubmitButton = Button(newConversationBox, text = "Invite Friends", fg = "white", activeforeground = "white", bg = "dark green", activebackground = "dark green", font = font2)
+	newConversationBoxSubmitButton = Button(newConversationBox, text = "Invite Friends", fg = "white", activeforeground = "white", bg = "dark green", activebackground = "dark green", font = font2, relief = GROOVE)
 	newConversationBoxSubmitButton.pack(side = RIGHT, fill = X)
 
 	deleteMessagesBox = Toplevel(box, padx = 10, pady = 10)
@@ -402,7 +403,7 @@ class ConversationWindow:
 	deleteMessagesR1.pack(side = TOP, fill = X)
 	deleteMessagesR2 = Radiobutton(deleteMessagesBox, text = "All messages", variable = deleteMessages_opt, value = 2, font = font2)
 	deleteMessagesR2.pack(side = TOP, fill = X)
-	deleteMessagesBoxSubmitButton = Button(deleteMessagesBox, text = "Delete", fg = "white", activeforeground = "white", bg = "dark red", activebackground = "dark red", font = font2)
+	deleteMessagesBoxSubmitButton = Button(deleteMessagesBox, text = "Delete", fg = "white", activeforeground = "white", bg = "dark red", activebackground = "dark red", font = font2, relief = GROOVE)
 	deleteMessagesBoxSubmitButton.pack(side = RIGHT, fill = X)
 
 	box.withdraw()
@@ -681,10 +682,10 @@ class FriendAddWindow:
 	usernameLabelImg.pack(side = LEFT)
 	usernameLabelTxt = Label(frame2, text = "Username: ", font=font1)
 	usernameLabelTxt.pack(side = LEFT)
-	usernameBox = Entry(frame2, font=font2, relief = WINDOW_RELIEF, textvariable = username)
+	usernameBox = Entry(frame2, font=font2, relief = FLAT, textvariable = username)
 	usernameBox.pack(side = LEFT, expand = True)
-	sendButton = Button(frame3, text = "Send Request", font=font1, bg = "dark green", fg = "#ffffff", activebackground = "dark green", activeforeground = "#ffffff")
-	cancelButton = Button(frame3, text = "Cancel", font=font1, bg = "dark red", fg = "#ffffff", activebackground = "dark red", activeforeground = "#ffffff", command = friendrequestbox.withdraw)
+	sendButton = Button(frame3, text = "Send Request", font=font1, bg = "dark green", fg = "#ffffff", activebackground = "dark green", activeforeground = "#ffffff", relief = GROOVE)
+	cancelButton = Button(frame3, text = "Cancel", font=font1, bg = "dark red", fg = "#ffffff", activebackground = "dark red", activeforeground = "#ffffff", command = friendrequestbox.withdraw, relief = GROOVE)
 	cancelButton.pack(side = RIGHT)
 	sendButton.pack(side = RIGHT)
 
@@ -769,13 +770,13 @@ class EditProfileWindow:
 	usernameLabelImg.pack(side = LEFT)
 	usernameLabelTxt = Label(editprofileboxFrame2, text = "Username: ", font=font1)
 	usernameLabelTxt.pack(side = LEFT)
-	usernameBox = Entry(editprofileboxFrame2, font=font2, relief = WINDOW_RELIEF, textvariable = profileUsername)
+	usernameBox = Entry(editprofileboxFrame2, font=font2, relief = FLAT, textvariable = profileUsername)
 	usernameBox.pack(side = LEFT, expand = True)
 	passwordLabelImg = Label(editprofileboxFrame2, image = keyIcon)
 	passwordLabelImg.pack(side = LEFT)
 	passwordLabelTxt = Label(editprofileboxFrame2, text = "    Password: ", font=font1)
 	passwordLabelTxt.pack(side = LEFT)
-	passwordBox = Entry(editprofileboxFrame2, font=font2, relief = WINDOW_RELIEF, textvariable = profilePassword)
+	passwordBox = Entry(editprofileboxFrame2, font=font2, relief = FLAT, textvariable = profilePassword)
 	passwordBox.pack(side = LEFT, expand = True)
 	profilepicLabelImg = Label(editprofileboxFrame21, image = photoIcon)
 	profilepicLabelImg.pack(side = LEFT)
@@ -784,7 +785,7 @@ class EditProfileWindow:
 	profilePicture = StringVar()
 	profilepicLabelTxt2 = Label(editprofileboxFrame21, textvariable = profilePicture, font=font4, width=50)
 	profilepicLabelTxt2.pack(side = LEFT)
-	profilepicButton = Button(editprofileboxFrame21, text = "Select File", font=font2)
+	profilepicButton = Button(editprofileboxFrame21, text = "Select File", font=font2, relief = GROOVE)
 	profilepicButton.pack(side = LEFT)
 	gender = StringVar()
 	gender.set("M")
@@ -830,9 +831,9 @@ class EditProfileWindow:
 	eduHistoryBox = Text(editprofileboxFrame252, font = font21, height = 4, yscrollcommand = eduHistoryBoxScrollBar.set)
 	eduHistoryBox.pack(side = LEFT, fill = X)
 	eduHistoryBoxScrollBar.config(command = eduHistoryBox.yview)
-	saveButton = Button(editprofileboxFrame3, text = "Save", font=font1, bg = "dark green", fg = "#ffffff", activebackground = "dark green", activeforeground = "#ffffff")
-	cancelButton = Button(editprofileboxFrame3, text = "Cancel", font=font1, bg = "dark red", fg = "#ffffff", activebackground = "dark red", activeforeground = "#ffffff", command = editprofilebox.withdraw)
-	deleteMeButton = Button(editprofileboxFrame3, text = "Delete Me", font=font2, fg = "red", activeforeground = "red")
+	saveButton = Button(editprofileboxFrame3, text = "Save", font=font1, bg = "dark green", fg = "#ffffff", activebackground = "dark green", activeforeground = "#ffffff", relief = GROOVE)
+	cancelButton = Button(editprofileboxFrame3, text = "Cancel", font=font1, bg = "dark red", fg = "#ffffff", activebackground = "dark red", activeforeground = "#ffffff", command = editprofilebox.withdraw, relief = GROOVE)
+	deleteMeButton = Button(editprofileboxFrame3, text = "Delete Me", font=font2, fg = "red", activeforeground = "red", relief = GROOVE)
 	deleteMeButton.pack(side=LEFT)
 	cancelButton.pack(side = RIGHT)
 	saveButton.pack(side = RIGHT)
@@ -979,8 +980,8 @@ class FriendshipEditWindow():
 	RadioB = Radiobutton(frame4, text="Block", variable=lastsavedStatus, value="B", font = font2)
 	RadioB.pack(side = LEFT, fill = X)
 
-	sendButton = Button(frame5, text = "Save Settings", font=font1, bg = "dark green", fg = "#ffffff", activebackground = "dark green", activeforeground = "#ffffff")
-	cancelButton = Button(frame5, text = "Cancel", font=font1, bg = "dark red", fg = "#ffffff", activebackground = "dark red", activeforeground = "#ffffff", command = box.withdraw)
+	sendButton = Button(frame5, text = "Save Settings", font=font1, bg = "dark green", fg = "#ffffff", activebackground = "dark green", activeforeground = "#ffffff", relief = GROOVE)
+	cancelButton = Button(frame5, text = "Cancel", font=font1, bg = "dark red", fg = "#ffffff", activebackground = "dark red", activeforeground = "#ffffff", command = box.withdraw, relief = GROOVE)
 	cancelButton.pack(side = RIGHT)
 	sendButton.pack(side = RIGHT)
 
@@ -989,18 +990,17 @@ class FriendshipEditWindow():
 	def hide(self):
 		FriendshipEditWindow.box.withdraw()
 
-	def __init__(self, uid, affectedIDs, linkedCC, savecommand):
-		self.targetUser = linkedCC.getUserById(uid)
-		self.affectedIDs = affectedIDs
+	def __init__(self, user, affected, linkedCC, savecommand):
+		self.targetUser = user
+		self.affected = affected
+		if self.affected == list():
+			return ## extra checkpoint; at least one friend must be affected
 		## figure out if the user is just Approving Requests
 		justapproving = True
-		for x in self.targetUser.getFriends():
-			if x.getFriendID() in self.affectedIDs and x.getStatus() != "Pending":
+		for x in self.affected:
+			if x.getStatus() != "Pending":
 				justapproving = False
 				break
-
-		if self.affectedIDs == list():
-			return ## extra checkpoint; at least one friend must be affected
 		self.linkedCC = linkedCC
 		self.savecommand = savecommand
 		FriendshipEditWindow.RadioF.select()
@@ -1009,42 +1009,43 @@ class FriendshipEditWindow():
 			FriendshipEditWindow.sendButton.bind("<ButtonRelease-1>", self.save)
 			FriendshipEditWindow.box.bind("<Return>", self.save)
 			affectedNames = list()
-			for x in self.affectedIDs:
-				affectedNames.append(self.linkedCC.getUserById(x).getUsername())
+			for x in self.affected:
+				affectedNames.append(self.linkedCC.getUserById(x.getFriendID()).getUsername())
 			sep = ", "
 			FriendshipEditWindow.affectedLabelTxt.config(text = "Affected: " + sep.join(affectedNames))
 		else:
-			self.affectedIDs.append(self.targetUser.getUserID())
-			for uid in self.affectedIDs:
-				for f in self.linkedCC.getUserById(uid).getFriends():
-					if f.getFriendID() in self.affectedIDs:
-						f.setStatus("F")
+			usrID = self.targetUser.getUserID()
+			for friend in self.affected:
+				friend.setStatus('F')
+				for x in self.linkedCC.getUserById(friend.getFriendID()).getFriends():
+					if x.getFriendID() == usrID:
+						x.setStatus('F')
+						break
 			self.savecommand()
 
 	def save(self, event = None):
 		newstatus = FriendshipEditWindow.lastsavedStatus.get()
-		for x in self.targetUser.getFriends():
-			if x.getFriendID() in self.affectedIDs:
-				x.setStatus(newstatus)
+		for f in self.affected:
+			f.setStatus(newstatus)
 		FriendshipEditWindow.box.withdraw()
 		self.savecommand()
 
 LogoImg = PhotoImage(file = "img/logo_small.gif")
-LogoLabel = Label(adminFrame, image = LogoImg, relief = "flat")
+LogoLabel = Label(adminFrame, image = LogoImg, relief = FLAT)
 LogoLabel.pack(side=TOP, fill=X)
-userListLabel = Label(adminFrame, text="User Profiles: ", fg="#1E996C", font=font0)
+userListLabel = Label(adminFrame, text="Select a User Point-of-View: ", fg="#1E996C", font=font0)
 userListLabel.pack(side=TOP, fill=X)
-userListFrame = Frame(adminFrame, height=200, relief=WINDOW_RELIEF)
+userListFrame = Frame(adminFrame, height=200, relief = FLAT)
 userListFrame.pack(side=TOP, fill=X)
 adminFrameScrollBar = Scrollbar(userListFrame)
 adminFrameScrollBar.pack(side=RIGHT, fill=Y)
-userListBox = Listbox(userListFrame, yscrollcommand = adminFrameScrollBar.set, font=("Helvetica", 11, "normal"), selectbackground="#1E996C", selectforeground="#FFFFFF", selectmode=SINGLE, height=7)
+userListBox = Listbox(userListFrame, yscrollcommand = adminFrameScrollBar.set, font=("Helvetica", 11, "normal"), selectbackground="#1E996C", selectforeground="#FFFFFF", selectmode=SINGLE, height=15)
 userListBox.pack(side=TOP, fill=BOTH, expand=True)
 adminFrameScrollBar.config(command = userListBox.yview)
 
 def refreshUserListBox():
 	## This function should be used when refreshing later
-	userListBox.delete(0, END) ## There seems to be a Tk bug that returns an error when deleting before the Listbox contents have been initialized
+	userListBox.delete(0, END)
 	for profile in cc.getUsers():
 		userListBox.insert(END, profile.getUsername())
 	userListBox.activate(cc.getSelected().getUserID())
@@ -1076,10 +1077,10 @@ passwordBox = Label(controlBoxFrame3, font=font2)
 passwordBox.pack(side=LEFT)
 controlBoxFrame4 = Frame(adminFrame)
 controlBoxFrame4.pack(side=BOTTOM, fill=X)
-newUserButton = Button(controlBoxFrame4, font = font1, text = "Sign Up", bg = "#A3FF00", activebackground = "#A3FF00", fg = "#000000", activeforeground = "#000000", padx = 10)
+newUserButton = Button(controlBoxFrame4, font = font1, text = "Sign Up", bg = "#A3FF00", activebackground = "#A3FF00", fg = "#000000", activeforeground = "#000000", padx = 10, relief = GROOVE)
 newUserButton.pack(side = TOP, expand = True)
 
-profileDisplay = Frame(userFrame, relief = WINDOW_RELIEF, height=128)
+profileDisplay = Frame(userFrame, relief = FLAT, height=128)
 profileDisplay.pack(side=TOP, fill=X)
 photofilename = "img/defaultpic.gif"
 profilepicfile = PhotoImage(file = photofilename)
@@ -1134,6 +1135,10 @@ def deleteMe():
 def editprofile():
 	selectedUser = cc.getSelected()
 	if selectedUser == None:
+		tkMessageBox.showinfo("No User Selected","No user is currently selected. Select a user (and log in) first by clicking on one of the names in the User List Box located in the left pane.")
+		return
+	if selectedUser.isLoggedIn() == False:
+		tkMessageBox.showinfo("User Not Logged In","The current user is not logged in. Only logged-in users can change their profile settings.")
 		return
 	editprofilewin = EditProfileWindow(selectedUser, deleteMe, saveProfileChanges)
 	del editprofilewin
@@ -1157,27 +1162,27 @@ def viewConversations():
 
 newUserButton.config(command = registerNewUser)
 
-addFriendButton = Button(profileDisplayFrame3, text="Add a Friend", state=DISABLED, font=font2, bg="#C0C0C0", fg="black", activebackground = "#C0C0C0", activeforeground = "black", command = addfriend)
+addFriendButton = Button(profileDisplayFrame3, text="Add a Friend", state=DISABLED, font=font2, bg="#C0C0C0", fg="black", activebackground = "#C0C0C0", activeforeground = "black", command = addfriend, relief = GROOVE)
 addFriendButton.pack(side=LEFT)
-vewConversationsButton = Button(profileDisplayFrame3, text="View Conversations", state=DISABLED, font=font2, bg="#C0C0C0", fg="black", activebackground = "#C0C0C0", activeforeground = "black", command = viewConversations)
+vewConversationsButton = Button(profileDisplayFrame3, text="View Conversations", state=DISABLED, font=font2, bg="#C0C0C0", fg="black", activebackground = "#C0C0C0", activeforeground = "black", command = viewConversations, relief = GROOVE)
 vewConversationsButton.pack(side=LEFT)
-profileSettingsButton = Button(profileDisplayFrame3, text="Edit Profile", state=DISABLED, font=font2, bg="#C0C0C0", fg="black", activebackground = "#C0C0C0", activeforeground = "black", command = editprofile)
+profileSettingsButton = Button(profileDisplayFrame3, text="Edit Profile", state=DISABLED, font=font2, bg="#C0C0C0", fg="black", activebackground = "#C0C0C0", activeforeground = "black", command = editprofile, relief = GROOVE)
 profileSettingsButton.pack(side=LEFT)
-loginoutButton = Button(profileDisplayFrame3, text="Log In", font=font2, command=logInOut, bg="#004A7F", fg="white", activebackground = "#004A7F", activeforeground = "white")
+loginoutButton = Button(profileDisplayFrame3, text="Log In", font=font2, command=logInOut, bg="#004A7F", fg="white", activebackground = "#004A7F", activeforeground = "white", relief = GROOVE)
 loginoutButton.pack(side=LEFT)
 
-friendsDisplay = Frame(userFrame, relief = WINDOW_RELIEF, width = 240)
+friendsDisplay = Frame(userFrame, relief = FLAT, width = 240)
 friendsDisplay.pack(side=RIGHT, fill=Y)
-friendsSubFrame1 = Frame(friendsDisplay, relief = "flat")
+friendsSubFrame1 = Frame(friendsDisplay, relief = GROOVE)
 friendsSubFrame1.pack(side = TOP, fill=X)
 friendsListLabel = Label(friendsSubFrame1, fg="#FF7137", font=font0)
 friendsListLabel.pack(side=TOP, fill=X)
 friendsListScrollBar = Scrollbar(friendsSubFrame1)
 friendsListScrollBar.pack(side = RIGHT, fill=Y)
-friendsListBox = Listbox(friendsSubFrame1, relief = WINDOW_RELIEF, font = font2, yscrollcommand = friendsListScrollBar.set, height = 5, selectmode = MULTIPLE, state = DISABLED, selectforeground="#ffffff", selectbackground="#FF7137")
+friendsListBox = Listbox(friendsSubFrame1, relief = FLAT, font = font2, yscrollcommand = friendsListScrollBar.set, height = 10, selectmode = MULTIPLE, state = DISABLED, selectforeground="#ffffff", selectbackground="#FF7137")
 friendsListBox.pack(side=LEFT, fill=X)
 friendsListScrollBar.config(command = friendsListBox.yview)
-friendsSubFrame2 = Frame(friendsDisplay, relief = "flat")
+friendsSubFrame2 = Frame(friendsDisplay, relief = GROOVE)
 friendsSubFrame2.pack(side = TOP, fill=X)
 friendNameLabel = Label(friendsSubFrame2, font = font0, fg = "#FF3A27", wraplength=170)
 friendNameLabel.pack(side = TOP, fill=X)
@@ -1189,37 +1194,37 @@ friendshipGroupLabel.pack(side = TOP, fill=X)
 nextIcon = PhotoImage(file = "img/next.gif")
 prevIcon = PhotoImage(file = "img/prev.gif")
 
-statusBoxFrame = Frame(userFrame, relief = WINDOW_RELIEF)
+statusBoxFrame = Frame(userFrame, relief = FLAT)
 statusBoxFrame.pack(side = TOP, fill = X)
-statusBoxSubFrame1 = Frame(statusBoxFrame, relief = "flat")
+statusBoxSubFrame1 = Frame(statusBoxFrame, relief = FLAT)
 statusBoxSubFrame1.pack(side = TOP, fill = X)
-statusBoxLabel = Label(statusBoxSubFrame1, text = "Post Status: ", font = font1)
+statusBoxLabel = Label(statusBoxSubFrame1, text = "Post Status: ", font = font1, relief = FLAT)
 statusBoxLabel.pack(side = LEFT, fill = X)
-statusBoxSubFrame2 = Frame(statusBoxFrame, relief = "flat")
+statusBoxSubFrame2 = Frame(statusBoxFrame, relief = FLAT)
 statusBoxSubFrame2.pack(side = TOP, fill = X)
 statusBoxScrollBar = Scrollbar(statusBoxSubFrame2)
 statusBoxScrollBar.pack(side = RIGHT, fill = Y)
 statusBox = Text(statusBoxSubFrame2, font = font2, height = 4, padx = 12, pady = 12, yscrollcommand = statusBoxScrollBar.set, state = DISABLED, wrap = WORD)
 statusBox.pack(side = LEFT, fill = X, expand = True)
 statusBoxScrollBar.config(command = statusBox.yview)
-statusBoxSubFrame3 = Frame(statusBoxFrame, relief = "flat")
+statusBoxSubFrame3 = Frame(statusBoxFrame, relief = FLAT)
 statusBoxSubFrame3.pack(side = TOP, fill = X)
-postStatusButton = Button(statusBoxSubFrame3, text = "Post", font = font1, fg = "#ffffff", activeforeground = "#ffffff", bg = "#C0C0C0", activebackground = "#C0C0C0", state = DISABLED)
+postStatusButton = Button(statusBoxSubFrame3, text = "Post", font = font1, fg = "#ffffff", activeforeground = "#ffffff", bg = "#C0C0C0", activebackground = "#C0C0C0", state = DISABLED, relief = GROOVE)
 postStatusButton.pack(side = LEFT)
 
-newsFeedArea = Frame(userFrame, relief = WINDOW_RELIEF)
+newsFeedArea = Frame(userFrame, relief = FLAT)
 newsFeedArea.pack(side = TOP, fill = BOTH, expand = True)
 
-newsFeedControls = Frame(newsFeedArea, relief = "flat")
+newsFeedControls = Frame(newsFeedArea, relief = FLAT)
 newsFeedControls.pack(side = TOP, fill = X)
 newsFeedLabel = Label(newsFeedControls, text = "\nNews Feed: ", font = font1)
 newsFeedLabel.pack(side = LEFT)
-nextInFeedButton = Button(newsFeedControls, image = nextIcon, state = DISABLED)
-prevInFeedButton = Button(newsFeedControls, image = prevIcon, state = DISABLED)
+nextInFeedButton = Button(newsFeedControls, image = nextIcon, state = DISABLED, relief = GROOVE)
+prevInFeedButton = Button(newsFeedControls, image = prevIcon, state = DISABLED, relief = GROOVE)
 nextInFeedButton.pack(side = RIGHT)
 prevInFeedButton.pack(side = RIGHT)
 
-newsFeedSlide = Frame(newsFeedArea)
+newsFeedSlide = Frame(newsFeedArea, relief = SUNKEN)
 newsFeedSlide.pack(side = TOP, fill = BOTH, expand = True)
 statusPosterDetailsFrame = Frame(newsFeedSlide)
 statusPosterDetailsFrame.pack(side = TOP, fill = X)
@@ -1232,30 +1237,30 @@ statusPosterName = Label(statusPosterDetailsSubFrame1, text = "", font = font2, 
 statusPosterName.pack(side = LEFT)
 statusTimestamp = Label(statusPosterDetailsSubFrame1, text = "", font = font2, fg = "#1742B7", padx = 5)
 statusTimestamp.pack(side = LEFT)
-statusPosterDetailsSubFrame2 = Frame(statusPosterDetailsFrame)
+statusPosterDetailsSubFrame2 = Frame(statusPosterDetailsFrame, relief = FLAT)
 statusPosterDetailsSubFrame2.pack(side = TOP, fill = X)
-statusPosterDetailsSubFrame21 = Frame(statusPosterDetailsFrame)
+statusPosterDetailsSubFrame21 = Frame(statusPosterDetailsFrame, relief = FLAT)
 statusPosterDetailsSubFrame21.pack(side = TOP, fill = X)
 statusThumbsUpsCount = Label(statusPosterDetailsSubFrame2, text = "", font = font1, fg = "#32B71B", padx = 5, pady = 5)
 statusThumbsUpsCount.pack(side = LEFT)
-thumbsUpButton = Button(statusPosterDetailsSubFrame21, fg = "#32B71B", font = font4, activeforeground = "#32B71B", text = "+Thumbs Up", state = DISABLED)
+thumbsUpButton = Button(statusPosterDetailsSubFrame21, fg = "#32B71B", font = font4, activeforeground = "#32B71B", text = "+Thumbs Up", state = DISABLED, relief = GROOVE)
 thumbsUpButton.pack(side = LEFT)
 statusThumbsDownsCount = Label(statusPosterDetailsSubFrame2, text = "", font = font1, fg = "#E83759", padx = 5, pady = 5)
 statusThumbsDownsCount.pack(side = LEFT)
-thumbsDownButton = Button(statusPosterDetailsSubFrame21, fg = "#E83759", activeforeground = "#E83759", font = font4, text = "-Thumbs Down", state = DISABLED)
+thumbsDownButton = Button(statusPosterDetailsSubFrame21, fg = "#E83759", activeforeground = "#E83759", font = font4, text = "-Thumbs Down", state = DISABLED, relief = GROOVE)
 thumbsDownButton.pack(side = LEFT)
-deleteStatusButton = Button(statusPosterDetailsSubFrame21, fg = "#B5030C", activeforeground = "#B5030C", font = font4, text = "Delete Post", state = DISABLED)
+deleteStatusButton = Button(statusPosterDetailsSubFrame21, fg = "#B5030C", activeforeground = "#B5030C", font = font4, text = "Delete Post", state = DISABLED, relief = GROOVE)
 deleteStatusButton.pack(side = LEFT)
-statusPosterDetailsSubFrame3 = Frame(statusPosterDetailsFrame)
+statusPosterDetailsSubFrame3 = Frame(statusPosterDetailsFrame, relief = FLAT)
 statusPosterDetailsSubFrame3.pack(side = TOP, fill = X)
 statusTextScrollBar = Scrollbar(statusPosterDetailsSubFrame3)
 statusTextScrollBar.pack(side = RIGHT, fill = Y)
 statusText = Text(statusPosterDetailsSubFrame3, font = font5, yscrollcommand = statusTextScrollBar.set, height = 4, state = DISABLED, wrap = WORD)
 statusTextScrollBar.config(command = statusText.yview)
 statusText.pack(side = LEFT, fill = X, expand = True)
-commentsBufferFrame = Frame(newsFeedSlide, width = 132, relief = "flat")
+commentsBufferFrame = Frame(newsFeedSlide, width = 132, relief = FLAT)
 commentsBufferFrame.pack(side = LEFT, fill = Y)
-commentsFrame = Frame(newsFeedSlide, relief = "flat")
+commentsFrame = Frame(newsFeedSlide, relief = FLAT)
 commentsFrame.pack(side = LEFT, fill = BOTH, expand = True)
 commentsSubFrame1 = Frame(commentsFrame)
 commentsSubFrame1.pack(side = TOP, fill = X)
@@ -1270,7 +1275,7 @@ commentsScrollBar.config(command = commentsBox.yview)
 commentsBox.pack(side = LEFT, fill = BOTH, expand = True)
 writeCommentBox = Entry(commentsSubFrame2, font = font2, state = DISABLED)
 writeCommentBox.pack(side = LEFT, fill = X, expand = True)
-submitCommentButton = Button(commentsSubFrame2, text = "Submit Comment", font = font4, fg = "#1241CE", activeforeground = "#1241CE", state = DISABLED)
+submitCommentButton = Button(commentsSubFrame2, text = "Submit Comment", font = font4, fg = "#1241CE", activeforeground = "#1241CE", state = DISABLED, relief = GROOVE)
 submitCommentButton.pack(side = LEFT)
 
 def updateDisplayedStatus(index = 0):
@@ -1406,29 +1411,44 @@ postStatusButton.config(command = postStatus)
 deleteStatusButton.config(command = deleteStatus)
 
 def changefriendshipstatus():
-	selectedFriends = friendsListBox.curselection()
-	targetFriends = list(f.getFriendID() for f in cc.getSelected().getFriends() if f.getStatus() != "Requested" and cc.getUserById(f.getFriendID()).getUsername() in list(friendsListBox.get(int(x)) for x in selectedFriends))
-	editwin = FriendshipEditWindow(cc.getSelected().getUserID(), targetFriends, cc, updateAwesomesauceControls)
+	friendsListBoxSelectedIndices = friendsListBox.curselection()
+	friendsListBoxSelectedNames = list(friendsListBox.get(int(x)) for x in friendsListBoxSelectedIndices)
+	selectedUser = cc.getSelected()
+	selectedUserFriends = selectedUser.getFriends()
+	friendsListBoxSelectedObjs = list()
+	for name in friendsListBoxSelectedNames:
+		for friend in selectedUserFriends:
+			if cc.getUserById(friend.getFriendID()).getUsername() == name:
+				friendsListBoxSelectedObjs.append(friend)
+				break
+	editwin = FriendshipEditWindow(selectedUser, friendsListBoxSelectedObjs, cc, updateAwesomesauceControls)
 	del editwin
 
 def unfriend():
-	selectedFriends = friendsListBox.curselection()
-	targetFriends = list(f for f in cc.getSelected().getFriends() if cc.getUserById(f.getFriendID()).getUsername() in list(friendsListBox.get(int(x)) for x in selectedFriends) )
-	confirmTxt = "Are you sure you want to remove the following users from your friends and friend requests list?\n"
-	affectedNames = list(cc.getUserById(f.getFriendID()).getUsername() for f in targetFriends)
+	friendsListBoxSelectedIndices = friendsListBox.curselection()
+	friendsListBoxSelectedNames = list(friendsListBox.get(int(x)) for x in friendsListBoxSelectedIndices)
+	selectedUser = cc.getSelected()
+	selectedUserFriends = selectedUser.getFriends()
+	friendsListBoxSelectedObjs = list()
+	affectedNames = list()
+	for name in friendsListBoxSelectedNames:
+		for friend in selectedUserFriends:
+			if cc.getUserById(friend.getFriendID()).getUsername() == name:
+				friendsListBoxSelectedObjs.append(friend)
+				break
 	commaSep = ", "
-	if tkMessageBox.askyesno("Unfriend - Confirm", confirmTxt + commaSep.join(affectedNames), default = "no") == True:
-		uid1 = cc.getSelected().getUserID()
-		for friend in targetFriends:
+	if tkMessageBox.askyesno("Unfriend - Confirm", "Are you sure you want to unfriend the following users? \n" + commaSep.join(friendsListBoxSelectedNames), default = "no") == True:
+		uid1 = selectedUser.getUserID()
+		for friend in friendsListBoxSelectedObjs:
 			cc.unfriendById(uid1, friend.getFriendID())
 		updateAwesomesauceControls()
 
-changeFriendshipStatusButton = Button(friendsSubFrame2, font = font4, bg = "#C0C0C0", activebackground = "#C0C0C0", fg = "#000000", activeforeground = "#000000", state = DISABLED, text = "Change Status", command = changefriendshipstatus)
+changeFriendshipStatusButton = Button(friendsSubFrame2, font = font4, bg = "#C0C0C0", activebackground = "#C0C0C0", fg = "#000000", activeforeground = "#000000", state = DISABLED, text = "Change Status", command = changefriendshipstatus, relief = GROOVE)
 changeFriendshipStatusButton.pack(side = TOP, fill = X)
-unfriendButton = Button(friendsSubFrame2, font = font4, bg = "#C0C0C0", activebackground = "#C0C0C0", fg = "#000000", activeforeground = "#000000", state = DISABLED, text = "Unfriend", command = unfriend)
+unfriendButton = Button(friendsSubFrame2, font = font4, bg = "#C0C0C0", activebackground = "#C0C0C0", fg = "#000000", activeforeground = "#000000", state = DISABLED, text = "Unfriend", command = unfriend, relief = GROOVE)
 unfriendButton.pack(side = TOP, fill = X)
 
-#newsFeedDisplay = Frame(userFrame, relief = WINDOW_RELIEF, width = WINDOW_WIDTH - 240)
+#newsFeedDisplay = Frame(userFrame, relief = FLAT, width = WINDOW_WIDTH - 240)
 #newsFeedDisplay.pack(side=LEFT, fill=Y)
 
 def updateAwesomesauceControls(event = None):
@@ -1468,7 +1488,7 @@ def updateAwesomesauceControls(event = None):
 		profileSubLabel4.config(text = "")
 		profileSubLabel5.config(text = "")
 		friendsListLabel.config(text = "")
-		friendsListBox.delete(0, friendsListBox.size() - 1)
+		friendsListBox.delete(0, END)
 		friendsListBox.config(state = DISABLED)
 		nextInFeedButton.config(state = DISABLED)
 		prevInFeedButton.config(state = DISABLED)
@@ -1518,18 +1538,18 @@ def updateAwesomesauceControls(event = None):
 		profileSubLabel4.config(text = "Job History: " + separator.join(selectedUser.getJobHistory()))
 		profileSubLabel5.config(text = "Education: " + separator.join(selectedUser.getEducationHistory()))
 		friendsListLabel.config(text = "Your Friends:")
-		friendNameLabel.config(text = "Select a Friend")
-		profileSettingsButton.config(state = NORMAL, bg = "#00B2FF", activebackground = "#00B2FF")
-		addFriendButton.config(state = NORMAL, bg = "#75CE1C", activebackground = "#75CE1C")
-		vewConversationsButton.config(state = NORMAL, bg = "#6D88FF", activebackground = "#6D88FF")
+		friendNameLabel.config(text = "Hint: Select a Friend above")
+		profileSettingsButton.config(state = NORMAL, bg = "#00A0EA", activebackground = "#00A0EA")
+		addFriendButton.config(state = NORMAL, bg = "#00A0EA", activebackground = "#00A0EA")
+		vewConversationsButton.config(state = NORMAL, bg = "#00A0EA", activebackground = "#00A0EA")
+		commentsLabel.config(text = "Comments: ")
 		friendshipStatusLabel.config(text = "")
 		friendshipGroupLabel.config(text = "")
 		friendsListBox.config(state = NORMAL)
-		commentsLabel.config(text = "Comments: ")
 		## clear the friend list box first
 		friendsListBox.delete(0, END)
-		for x in selectedUser.getFriends():
-			friendsListBox.insert(END, cc.getUserById(x.getFriendID()).getUsername())
+		for friend in selectedUser.getFriends():
+			friendsListBox.insert(END, cc.getUserById(friend.getFriendID()).getUsername())
 		loginoutButton.config(text = "Log Out", state=NORMAL, activebackground = "dark red", bg = "dark red")
 		## display newsfeed
 		cc.aggregateNewsfeedById(selectedUser.getUserID())
@@ -1539,7 +1559,7 @@ def updateAwesomesauceControls(event = None):
 		submitCommentButton.config(state = NORMAL)
 		postStatusButton.config(state = NORMAL, bg = "#215CFF", activebackground = "#215CFF")
 
-def updateFriendshipControls(event):
+def updateFriendshipControls(event = None):
 	## get currently selected POV user
 	selectedUser = cc.getSelected()
 	if selectedUser == None:
@@ -1550,12 +1570,14 @@ def updateFriendshipControls(event):
 		return ## no point in continuing; extra check only
 	separator = " // "
 	## get corresponding Friendship objects
-	selectedFriends = list()
-
+	friendsListBoxSelected = list()
+	usrFriends = selectedUser.getFriends()
 	for x in curselected:
-		selectedFriends.append(selectedUser.getFriends()[int(x)])
+		friendsListBoxSelected.append(usrFriends[int(x)])
 
-	selectedFriendsLen = len(selectedFriends)
+	friendsListBoxSelected
+
+	selectedFriendsLen = len(friendsListBoxSelected)
 	changeFriendshipStatusButton.config(state = NORMAL, bg = "#FF9B63", activebackground = "#FF9B63", text = "Change Status")
 	unfriendButton.config(state = NORMAL, bg = "#FF9B63", activebackground = "#FF9B63", text = "Unfriend")
 	if selectedFriendsLen > 1:
@@ -1563,25 +1585,25 @@ def updateFriendshipControls(event):
 		samegroups = True
 		## More than one friend is selected;
 		## see if their statuses, etc. are all the same
-		firstStat = selectedFriends[0].getStatus()
-		firstGroup = selectedFriends[0].getGroups()
+		firstStat = friendsListBoxSelected[0].getStatus()
+		firstGroup = friendsListBoxSelected[0].getGroups()
 		## The statuses, etc. are all the same if they are all equal to the first one
-		for x in selectedFriends:
+		for x in friendsListBoxSelected:
 			if x.getStatus() != firstStat:
 				samestatuses = False
 				break
 			else:
 				continue
-		for x in selectedFriends:
+		for x in friendsListBoxSelected:
 			if x.getGroups() != firstGroup:
 				samegroups = False
 				break
 			else:
 				continue
 
-		friendNameLabel.config(text = cc.getUserById(selectedFriends[0].getFriendID()).getUsername() + " + " + str(selectedFriendsLen-1) + " more...")
+		friendNameLabel.config(text = cc.getUserById(friendsListBoxSelected[0].getFriendID()).getUsername() + " + " + str(selectedFriendsLen-1) + " more...")
 		if samestatuses == True:
-			stat = selectedFriends[0].getStatus()
+			stat = friendsListBoxSelected[0].getStatus()
 			friendshipStatusLabel.config(text = "Status: (All) " + stat)
 			if stat == "Pending":
 				changeFriendshipStatusButton.config(state = NORMAL, bg = "#FF9B63", activebackground = "#FF9B63", text = "Approve")
@@ -1592,7 +1614,7 @@ def updateFriendshipControls(event):
 		else:
 			friendshipStatusLabel.config(text = "Status: (Several)")
 		if samegroups == True:
-			grouplist = selectedFriends[0].getGroups()
+			grouplist = friendsListBoxSelected[0].getGroups()
 			if grouplist != list():
 				groups = separator.join(grouplist)
 			else:
@@ -1602,13 +1624,13 @@ def updateFriendshipControls(event):
 			friendshipGroupLabel.config(text = "Groups: (Several)")
 	else:
 		## Only one user is selected
-		grouplist = selectedFriends[0].getGroups()
+		grouplist = friendsListBoxSelected[0].getGroups()
 		if grouplist != list():
 			groups = separator.join(grouplist)
 		else:
 			groups = "<None>"
-		friendNameLabel.config(text = cc.getUserById(selectedFriends[0].getFriendID()).getUsername())
-		stat = selectedFriends[0].getStatus()
+		friendNameLabel.config(text = cc.getUserById(friendsListBoxSelected[0].getFriendID()).getUsername())
+		stat = friendsListBoxSelected[0].getStatus()
 		friendshipStatusLabel.config(text = "Status: " + stat)
 		friendshipGroupLabel.config(text = "Groups: " + groups)
 		if stat == "Pending":
@@ -1628,9 +1650,8 @@ friendsListBox.bind("<ButtonRelease-1>", updateFriendshipControls)
 menubar = Menu(mainWindow, tearoff=False)
 usermenu = Menu(menubar, tearoff=False)
 usermenu.add_command(label="New", command=registerNewUser)
-usermenu.add_command(label="Select")
+usermenu.add_command(label="Edit Profile", command=editprofile)
 usermenu.add_command(label="Log in/out", command=logInOut)
-usermenu.add_command(label="Delete")
 
 menubar.add_cascade(label="User", menu=usermenu)
 

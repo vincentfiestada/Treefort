@@ -35,6 +35,9 @@ class Status:
 		self.comments = comments ## A list of comment objects
 		self.thumbsups = up ## A list of user ids
 		self.thumbsdowns = down ## list of user ids
+		self.rank = 0.0
+		## the following details will be used to determine if the rank needs to be updated
+		self.rankLastUpdate = (0.0, len(self.thumbsups), len(self.thumbsdowns))
 
 	def getFText(self):
 		return self.text.replace("<tb>","\t").replace("<br>","\n").replace("<col>",":").replace("<bar>","|")
@@ -68,15 +71,29 @@ class Status:
 		return self.ctime
 	
 	def getRank(self):
+		## Computing the rank every time is expensive;
+		## use three values:
+		## --- Thumbs Ups count differed
+		## --- Thumbs Downs count differed
+		## --- time difference between last rank update is greater than 24 Hrs
+
+		currentSecs = time()
+		if self.rankLastUpdate[1] == len(self.thumbsups) and self.rankLastUpdate[2] == len(self.thumbsdowns) and currentSecs - self.time < 86400:
+			return self.rank
+
 		## Ranking algorithm is based on Reddit's ranking system, as described by:
 		## Amir Salihefendic on (www.amix.dk/blog/post/19588) Original concept (c) Reddit and Randall Munroe
-		today = datetime.fromtimestamp(time())
+		today = datetime.fromtimestamp(currentSecs)
 		timediff = today - EPOCH
 		epoch_seconds = timediff.days * 86400 + timediff.seconds + (float(timediff.microseconds) / 1000000)
-		score = len(self.thumbsups) - len(self.thumbsdowns)
+		thumbsupscount = len(self.thumbsups)
+		thumbsdowncount = len(self.thumbsdowns)
+		score = thumbsupscount - thumbsdowncount
 		order = log(max(abs(score), 1), 10)
 		sign = 1 if score > 0 else -1 if score < 0 else 0
-		return round(order + sign * epoch_seconds / 45000, 7)
+		self.rankLastUpdate = (currentSecs, thumbsupscount, thumbsdowncount)
+		self.rank = round(order + sign * epoch_seconds / 45000, 7)
+		return self.rank
 	
 	def comment(self, uid, text):
 		self.comments.append(Comment(uid, text))
@@ -120,12 +137,13 @@ class FriendsStrategy:
 
 class FewFriendsStrategy(FriendsStrategy):
 	def aggregate(self, user, linkedCC):
+		currentSecs = time()
 		friendIDs = list(f.getFriendID() for f in user.getFriends() if f.getStatus() != "Hidden Updates" and f.getStatus() != "Blocked" and f.getStatus() != "Requested" and f.getStatus() != "Pending")
 		friendIDs.append(user.getUserID())
 		newsfeed = list()
 		for friend in friendIDs:
 			friendStats = linkedCC.getUserById(friend).getStatuses()
-			for status in friendStats:
+			for status in list(s for s in friendStats if currentSecs - s.getRawTime() < 2592000):
 				newsfeed.append(status)
 		return sorted(newsfeed, key = Status.getRawTime, reverse = True)
 
@@ -133,12 +151,13 @@ class FewFriendsStrategy(FriendsStrategy):
 ## The ManyFriendsStrategy is based on the Ranking system of Reddit by Randall Munroe
 class ManyFriendsStrategy(FriendsStrategy):
 	def aggregate(self, user, linkedCC):
+		currentSecs = time()
 		newsfeed = list()
 		friendIDs = list(f.getFriendID() for f in user.getFriends() if f.getStatus() != "Hidden Updates" and f.getStatus() != "Blocked" and f.getStatus() != "Requested" and f.getStatus() != "Pending")
 		friendIDs.append(user.getUserID())
 		for friend in friendIDs:
 			friendStats = linkedCC.getUserById(friend).getStatuses()
-			for status in friendStats:
+			for status in list(s for s in friendStats if currentSecs - s.getRawTime() < 2592000):
 				newsfeed.append(status)
 		return sorted(newsfeed, key = Status.getRank, reverse = True)
 
