@@ -13,13 +13,13 @@ DATABASE_FEED_FILENAME = "db_feed.txt"
 PROGRAM_VERSION = "0.8.2 Alpha"
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
-font0 = ("Helvetica", 9, "bold")
-font1 = ("Helvetica", 11, "bold")
-font2 = ("Helvetica", 11)
-font21 = ("Courier New", 11)
-font3 = ("Helvetica", 14, "bold")
-font4 = ("Helvetica", 9)
-font5 = ("Verdana", 11)
+font0 = ("Segoe UI", 9, "bold")
+font1 = ("Segoe UI", 11, "bold")
+font2 = ("Segoe UI", 11)
+font21 = ("Segoe UI", 11)
+font3 = ("Segoe UI", 14, "bold")
+font4 = ("Segoe UI", 9)
+font5 = ("Segoe UI", 11)
 
 cc = IControlCenter()
 
