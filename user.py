@@ -87,6 +87,7 @@ class ActiveUser:
 		self.gender = newgender
 
 	def getAge(self):
+		## BIG ASSUMPTION HERE!
 		## Assumes that the program won't be running longer than a day. Because why would you?
 		if self.age != None:
 			return self.age
@@ -120,6 +121,8 @@ class ActiveUser:
 	def setBday(self, newbday):
 		## newbday must be a dictionary with entries year, month, and day
 		self.bday = newbday
+		## because the bday is new, the age must be recomputed
+		self.age = None
 
 	def getJobHistory(self):
 		return self.jobHistory
@@ -161,16 +164,11 @@ class ActiveUser:
 	
 	## 'conversationtoexit' argument must be a Conversation Object already in the list of conversations this user has
 	def exitConversation(self, conversationtoexit):
-		if conversationtoexit not in self.conversations:
+		try:
+			conversationtoexit.disjoin(self.userID)
+			self.conversations.remove(conversationtoexit)
+		except:
 			return
-		## delete this user's messages in conversation
-		##messages = list(x for x in conversationtoexit.getMessages() if x.getSender() == self.userID)
-		##for x in messages:
-		##	conversationtoexit.deleteMessageByValue(x)
-
-		## disjoin conversation
-		conversationtoexit.disjoin(self.userID)
-		self.conversations.remove(conversationtoexit)
 
 	def getStatuses(self):
 		return self.statuses
@@ -194,6 +192,7 @@ class ActiveUser:
 		self.statuses = statuslist
 
 	def logout(self):
-		if self.userID not in ActiveUser.activeUsers:
+		try:
+			ActiveUser.activeUsers.remove(self.userID)
+		except:
 			return
-		ActiveUser.activeUsers.remove(self.userID)

@@ -149,13 +149,15 @@ class StatusFeedDatabase(Database):
 				if x[0] != "\t":
 					## A new status post
 					xstamp = x.split(">>")
-					self.Dict.append(dict(poster=xstamp[0], timestamp = float(xstamp[1]), text = "", attachments = [], comments = [], up = [], down = []))
+					self.Dict.append(dict(poster=xstamp[0], timestamp = float(xstamp[1]), text = "", attachments = [], tags = [], comments = [], up = [], down = []))
 				else:
 					marker = x.lstrip().split(": ")[0]
 					if marker == "Text":
 						self.Dict[-1]['text'] = x.lstrip().replace("Text: ", "")
 					elif marker == "Attachments":
 						self.Dict[-1]['attachments'] = x.lstrip().replace("Attachments: ", "")
+					elif marker == "Tagged":
+						self.Dict[-1]['tags'] = list(x.lstrip().replace("Tagged: ", "").split('|'))
 					elif marker == "Comments":
 						self.Dict[-1]['comments'] = list(dict(commentator = y.split(": ")[0], text = y.split(": ")[1]) for y in x.lstrip().replace("Comments: ", "").split('|'))
 					elif marker == "Thumbs Up":
@@ -173,13 +175,15 @@ class StatusFeedDatabase(Database):
 			handle.write(item['poster'] + ">>" + str(item['timestamp']) + "\n")
 			handle.write("\tText: " + item['text'] + "\n")
 			handle.write("\tAttachments: " + barsep.join(item['attachments']) + "\n")
+			handle.write("\tTagged: " + barsep.join(item['tags']) + "\n")
 			handle.write("\tComments: " + barsep.join((k['commentator'] + ": " + k['text'] for k in item['comments'])) + "\n")
 			handle.write("\tThumbs Up: " + barsep.join(item['up']) + "\n")
 			handle.write("\tThumbs Down: " + barsep.join(item['down']))
 		handle.close()
 
-	def insert(self, poster, timestamp, text, attachments = [], comments = [], up = [], down = []):
-		self.Dict.append(dict(poster = poster, timestamp = timestamp, text = text, attachments = attachments, comments = comments, up = up, down = down)) ## each item in comments list must be a dict with 'commentator' and 'text' items
+	def insert(self, poster, timestamp, text, attachments = [], tags = [], comments = [], up = [], down = []):
+		self.Dict.append(dict(poster = poster, timestamp = timestamp, text = text, attachments = attachments, tags = tags, comments = comments, up = up, down = down))
+		## each item in comments list must be a dict with 'commentator' and 'text' items
 
 class UserConfigDatabase(Database):
 	def importDB(self):
@@ -266,6 +270,7 @@ class IControlCenter:
 	userRoster = list()
 	conversationRoster = list()
 	selected = None
+	usersToDelete = list()
 
 	def openDB(self, dbfilename, db_convfilename, db_feedfilename):
 		## store last used database filenames
@@ -371,7 +376,7 @@ class IControlCenter:
 		for entry in IControlCenter.database_feed.getDict():
 			try:
 				commentObjs = list(Comment(self.getUserByName(k['commentator']).getUserID(), k['text']) for k in entry['comments'])
-				newStatusObject = Status(text = entry['text'], poster = self.getUserByName(entry['poster']).getUserID(), timestamp = entry['timestamp'], attachments = entry['attachments'], up = list(self.getUserByName(k).getUserID() for k in entry['up']), comments = commentObjs, down = list(self.getUserByName(d).getUserID() for d in entry['down']))
+				newStatusObject = Status(text = entry['text'], poster = self.getUserByName(entry['poster']).getUserID(), timestamp = entry['timestamp'], attachments = entry['attachments'], tags = list(self.getUserByName(k).getUserID() for k in entry['tags']), up = list(self.getUserByName(k).getUserID() for k in entry['up']), comments = commentObjs, down = list(self.getUserByName(d).getUserID() for d in entry['down']))
 			except:
 				return "The feed/status database file ('" + self.db_feedfilename + "') could not be imported successfully. It might be corrupted. Please check the file's contents and see if they are consistent with the specifications of Tree Fort."
 			self.getUserById(newStatusObject.getPoster()).addStatus(newStatusObject)
@@ -400,6 +405,7 @@ class IControlCenter:
 	def editUserById(self, uid, username = None, password = None, friendlist = None, profilepic = None, gender = None, bday = None, jobhistory = None, eduhistory = None):
 		targetUser = self.getUserById(uid)
 		oldusername = targetUser.getUsername()
+		
 		if username != None:
 			username = username.lstrip().rstrip()
 			## check if empty
@@ -432,7 +438,7 @@ class IControlCenter:
 
 		if username != oldusername: ## If username must be changed, edit folder name as well
 			##rename the folder of this user's settings
-			os.rename("users/" + oldusername, "users/" + username)
+			os.rename("users/" + oldusername + "/", "users/" + username + "/")
 			## edit this user's login credentials
 			## update config database filename
 			updatedConfigDB = UserConfigDatabase(filename = "users/" + username + "/info.txt")
@@ -460,6 +466,21 @@ class IControlCenter:
 		IControlCenter.userRoster[uid1].unfriendById(uid2)
 		IControlCenter.userRoster[uid2].unfriendById(uid1)
 
+	def addStatusById(self, uid, text):
+		## This function will also parse tags made inside the text of the status
+
+		asterSep = text.split('*')
+		taggedIDs = list()
+		for i in range(len(asterSep)):
+			try:
+				taggedIDs.append(self.getUserByName(asterSep[i]).getUserID())
+			except:
+				continue
+		blanksep = ""
+		text = blanksep.join(asterSep)
+
+		IControlCenter.userRoster[uid].addStatus(Status(text = text, poster = uid, tags = taggedIDs))
+
 	## 'members' must be an iterable object (lsit/tuple) contaning User IDs
 	def addConversationById(self, members):
 		newConversationObject = Conversation(members)
@@ -486,7 +507,14 @@ class IControlCenter:
 	def saveDB(self):
 		if IControlCenter.database != None:
 			IControlCenter.database.clearDict()
+			ActiveUser.activeUsers = list()
+			uidCount = 0
 			for userprofile in IControlCenter.userRoster:
+				if userprofile.getUserID() in IControlCenter.usersToDelete:
+					continue
+				if userprofile.isLoggedIn():
+					ActiveUser.activeUsers.append(uidCount)
+				uidCount += 1
 				## update config Database
 				userprofile.configDB.editEntryByID('gender', newvalue = userprofile.getGender()[0])
 				userprofile.configDB.editEntryByID('bday', newvalue = userprofile.getBdayDict())
@@ -497,6 +525,8 @@ class IControlCenter:
 				## first, build list of a formatted friends
 				friendslist = list()
 				for friendX in userprofile.getFriends():
+					if friendX.getFriendID() in IControlCenter.usersToDelete:
+						continue
 					thingToAppend = list()
 					friendstat = friendX.getStatus()
 					if friendstat == "Requested":
@@ -517,7 +547,10 @@ class IControlCenter:
 						thingToAppend.append(grouplist)
 						thingToAppend.append(">>")
 					## finally, append username
-					thingToAppend.append(self.getUserById(friendX.getFriendID()).getUsername())
+					try:
+						thingToAppend.append(self.getUserById(friendX.getFriendID()).getUsername())
+					except:
+						continue
 					blanksep = ""
 					friendslist.append(blanksep.join(thingToAppend))
 				IControlCenter.database.insert(username = userprofile.getUsername(), password = userprofile.getPassword(), friends = friendslist)
@@ -525,15 +558,19 @@ class IControlCenter:
 			## reset conversations database and export conversations
 			IControlCenter.database_conversations.clearDict()
 			for conversation in IControlCenter.conversationRoster:
-				if conversation.getMembers() == list(): ## If no members, do not export; it's junk
-					continue
-				memberslist = list(self.getUserById(uid).getUsername() for uid in conversation.getMembers())
+				memberslist = list()
+				for m in conversation.getMembers():
+					if m not in IControlCenter.usersToDelete:
+						memberslist.append(IControlCenter.userRoster[m].getUsername())
 				msglist = list(self.getUserById(x.getSender()).getUsername() + ": " + x.getText() for x in conversation.getMessages())
-				IControlCenter.database_conversations.insert(members = memberslist, messages = msglist)
+				if memberslist != list():
+					IControlCenter.database_conversations.insert(members = memberslist, messages = msglist)
 			IControlCenter.database_conversations.exportDB()
 			## build a list of Status objects, then insert into database
 			statusRoster = list()
-			for user in self.getUsers():
+			for user in IControlCenter.userRoster:
+				if user.getUserID() in IControlCenter.usersToDelete:
+					continue
 				for status in user.getStatuses():
 					statusRoster.append(status)
 			## reset status database and export statuses
@@ -546,11 +583,12 @@ class IControlCenter:
 				if exportedStatusCount == 10000:
 					break
 				try:
-					IControlCenter.database_feed.insert(poster = self.getUserById(s.getPoster()).getUsername(), timestamp = str(s.getRawTime()), text = s.getText(), attachments = s.getAttachments(), comments = list(dict(commentator = self.getUserById(c.getPoster()).getUsername(), text = c.getText()) for c in s.getComments()), up = list(self.getUserById(k).getUsername() for k in s.getThumbsUps()), down = list(self.getUserById(k).getUsername() for k in s.getThumbsDowns()))
+					IControlCenter.database_feed.insert(poster = self.getUserById(s.getPoster()).getUsername(), timestamp = str(s.getRawTime()), text = s.getText(), attachments = s.getAttachments(), tags = list(self.getUserById(k).getUsername() for k in s.getTags()), comments = list(dict(commentator = self.getUserById(c.getPoster()).getUsername(), text = c.getText()) for c in s.getComments()), up = list(self.getUserById(k).getUsername() for k in s.getThumbsUps()), down = list(self.getUserById(k).getUsername() for k in s.getThumbsDowns()))
 					exportedStatusCount += 1
 				except:
 					continue
 			IControlCenter.database_feed.exportDB()
+			IControlCenter.usersToDelete = list()
 
 	def getUserByName(self, username):
 		user = None
@@ -588,36 +626,30 @@ class IControlCenter:
 			return "Could not find the user you were looking for."
 
 		## unfriend with everyone;
-		## DO NOT ATTEMPT TO UNFRIEND FROM target's PERSPECTIVE
-		## e.g. FriendA will unfriend target; target should not need to unfriend FriendA
-		## since target will be killed, ahem deleted.
-		try:
-			for friend in target.getFriends():
-				IControlCenter.userRoster[friend.getFriendID()].unfriendById(uid)
-		except:
-			return "Could not unfriend all users with this one."
-		## delete all messages
-		try:
-			for conv in IControlCenter.conversationRoster:
+		for friend in target.getFriends():
+			self.unfriendById(friend.getFriendID(), uid)
+		## delete all messages and exit all conversations
+		## delte conversations if necessary
+		for user in IControlCenter.userRoster:
+			for conv in user.getConversations():
 				for msg in conv.getMessages():
 					if msg.getSender() == uid:
 						conv.deleteMessageByValue(msg)
-		except:
-			return "Could not delete all of this user's messages."
-		## exit all conversations
-		## the saveDB function will not export it later if there are no longer any members
-		try:
-			for conv in target.getConversations():
-				target.exitConversation(conv)
-		except:
-			return "Could not exit all of this user's conversations successfully."
-		## delete all comments, as well as thumbsups and thumbsdowns and statuses
+		## delete comments, tags, thumbs ups and downs
 		for user in IControlCenter.userRoster:
 			for status in user.getStatuses():
-				if uid in status.getThumbsDowns():
+				try:
 					status.getThumbsDowns().remove(uid)
-				if uid in status.getThumbsUps():
+				except:
+					pass
+				try:
 					status.getThumbsUps().remove(uid)
+				except:
+					pass
+				try:
+					status.getTags().remove(uid)
+				except:
+					pass
 				for comment in status.getComments():
 					if comment.getPoster() == uid:
 						status.deleteCommentByValue(comment)
@@ -631,11 +663,11 @@ class IControlCenter:
 			except:
 				return "Could not delete the user's folder."
 		## remove from userRoster
-		target.logout()
-		IControlCenter.userRoster.remove(target)
+		self.logoutUser(uid)
+		IControlCenter.usersToDelete.append(uid)
 		self.saveDB()
 		opresp = self.openDB(self.dbfilename, self.db_convfilename, self.db_feedfilename)
 		if opresp != "SUCCESS":
 			return opresp
-		self.setSelected(IControlCenter.database.getLastID())
+		self.setSelected(IControlCenter.userRoster[-1].getUserID())
 		return "SUCCESS"

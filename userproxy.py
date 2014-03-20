@@ -205,9 +205,7 @@ class UserProxy:
 
 	def editConfigDB(self, newDB):
 		self.configDB = newDB
-		del self.actualuser
 		self.configDB.importDB()
-		self.createActiveUser()
 
 	def createActiveUser(self):
 		configDetails = self.configDB.getDict()

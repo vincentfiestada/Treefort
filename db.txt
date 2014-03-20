@@ -1,14 +1,13 @@
 Finn the Human: enchiridion
 	Princess Bubblegum
 	Lumpy Space Princess
-	[C]Jake
+	Jake
 	Vincent
 Jake: mysandwich
 	Princess Bubblegum
 	Lumpy Space Princess
 	Finn the Human
 	Vincent
-	Archer
 Princess Bubblegum: science4Ever
 	Lumpy Space Princess
 	Finn the Human
@@ -18,11 +17,8 @@ Lumpy Space Princess: whateverits2009
 	Princess Bubblegum
 	Finn the Human
 	Jake
-	Archer
-Vincent: icarus
-	Adventurers>>Jake
-	Princess Bubblegum
-	[H]Adventurers>>Finn the Human
-Archer: guest
-	Lumpy Space Princess
+Vincent: prometheus
 	Jake
+	Princess Bubblegum
+	[H]Finn the Human
+Archer: guest

@@ -9,24 +9,30 @@ class Comment:
 		## newlines are not allowed in comments since they mess up the tag_config in the Text Box
 		self.text = text.lstrip().rstrip().replace("\t","<tb>").replace("\n","").replace("<br>","").replace(":","<col>").replace("|","<bar>")
 		self.poster = poster
+		self.formattedText = self.text.replace("<tb>","\t").replace("<col>",":").replace("<bar>","|")
 
 	def getText(self):
 		return self.text
 
 	def getFText(self):
-		return self.text.replace("<tb>","\t").replace("<col>",":").replace("<bar>","|")
+		return self.formattedText
 
 	def getPoster(self):
 		return self.poster
 
 class Status:
 	## 'poster' argument must be the User ID of the user who posted this status
-	def __init__(self, text, poster, timestamp = None, attachments = [], up = [], down = [], comments = []):
+	def __init__(self, text, poster, timestamp = None, attachments = [], tags = [], up = [], down = [], comments = []):
+		## if the linkedCC argument is provided, parse the <tag>' ed user ids into user names
+
 		## some characters are changed to '?escape codes?' and can be retrieved in their original form using getFtext()
 		## applies to comments as well
 		self.text = text.lstrip().rstrip().replace("\t","<tb>").replace("\n","<br>").replace(":","<col>").replace("|","<bar>")
+		self.formattedText = self.text.replace("<tb>","\t").replace("<br>","\n").replace("<col>",":").replace("<bar>","|")
+
 		self.poster = poster
 		self.attachments = attachments
+		self.tags = tags ## a list of user ids tagged
 		if timestamp == None:
 			self.time = time()
 		else:
@@ -35,12 +41,12 @@ class Status:
 		self.comments = comments ## A list of comment objects
 		self.thumbsups = up ## A list of user ids
 		self.thumbsdowns = down ## list of user ids
-		self.rank = 0.0
+		self.rank = 0.0 ## This is a floating point number that will be used by the Many Friends Ranking Method
 		## the following details will be used to determine if the rank needs to be updated
 		self.rankLastUpdate = (0.0, len(self.thumbsups), len(self.thumbsdowns))
 
 	def getFText(self):
-		return self.text.replace("<tb>","\t").replace("<br>","\n").replace("<col>",":").replace("<bar>","|")
+		return self.formattedText
 
 	def getText(self):
 		return self.text
@@ -57,6 +63,9 @@ class Status:
 
 	def getAttachments(self):
 		return self.attachments
+
+	def getTags(self):
+		return self.tags
 
 	def getThumbsUps(self):
 		return self.thumbsups
@@ -101,14 +110,28 @@ class Status:
 	def giveThumbsUp(self, uid):
 		if uid not in self.thumbsups:
 			self.thumbsups.append(uid)
-			if uid in self.thumbsdowns:
+			try:
 				self.thumbsdowns.remove(uid)
+			except:
+				return
 
 	def giveThumbsDown(self, uid):
 		if uid not in self.thumbsdowns:
 			self.thumbsdowns.append(uid)
-			if uid in self.thumbsups:
+			try:
 				self.thumbsups.remove(uid)
+			except:
+				return
+
+	def addTag(self, uid):
+		if uid not in self.tags:
+			self.tags.append(uid)
+
+	def removeTag(self, uid):
+		try:
+			self.tags.remove(uid)
+		except:
+			return
 
 class NewsFeed:
 	## 'statuses' argument must be a list of Status objects

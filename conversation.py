@@ -32,5 +32,7 @@ class Conversation:
 		if uid not in self.members:
 			self.members.append(uid)
 	def disjoin(self, uid):
-		if uid in self.members:
+		try:
 			self.members.remove(uid)
+		except:
+			return
