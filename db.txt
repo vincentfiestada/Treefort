@@ -1,24 +1,41 @@
 Finn the Human: enchiridion
 	Princess Bubblegum
 	Lumpy Space Princess
-	Jake
-	Vincent
-Jake: mysandwich
+	[C]Jake the Dog
+Jake the Dog: mysandwich
 	Princess Bubblegum
-	Lumpy Space Princess
 	Finn the Human
-	Vincent
+	Lumpy Space Princess
 Princess Bubblegum: science4Ever
 	Lumpy Space Princess
 	Finn the Human
-	Jake
-	Vincent
+	Jake the Dog
 Lumpy Space Princess: whateverits2009
 	Princess Bubblegum
 	Finn the Human
-	Jake
-Vincent: prometheus
-	Jake
-	Princess Bubblegum
-	[H]Finn the Human
-Archer: guest
+	Jake the Dog
+Sterling Archer: guest
+	Lana Kane
+	Malory Archer
+	Pam
+	Cyril Figgis
+Lana Kane: monsterhands
+	[H]Sterling Archer
+	Malory Archer
+	Cyril Figgis
+	Pam
+Malory Archer: duchess
+	Sterling Archer
+	Lana Kane
+	Cyril Figgis
+	Pam
+Cyril Figgis: diearcherdie
+	Malory Archer
+	Lana Kane
+	Pam
+	Sterling Archer
+Pam: dairyfarm
+	Lana Kane
+	Malory Archer
+	Cyril Figgis
+	Sterling Archer

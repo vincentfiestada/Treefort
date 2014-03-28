@@ -1,20 +1,20 @@
-Finn the Human|Jake
+Finn the Human|Jake the Dog
 	Finn the Human: Hello, Jake!
-	Jake: Hi, Finn!
+	Jake the Dog: Hi, Finn!
 	Finn the Human: How are you?
-	Jake: I'm fine. Just hanging wth Lady and Jake Jr.
+	Jake the Dog: I'm fine. Just hanging wth Lady and Jake Jr.
 	Finn the Human: can u believe FP is going out with cinnamon bun now? (
-	Jake: what?! r u foolin' with me, man?
+	Jake the Dog: what?! r u foolin' with me, man?
 	Finn the Human: No! He's like some kind of flame knight now.
-	Jake: well, tell me if you're gonna go all depression-state again, okay?
+	Jake the Dog: well, tell me if you're gonna go all depression-state again, okay?
 	Finn the Human: nah. I'm totally fine.
-	Jake: Are you sure?
+	Jake the Dog: Are you sure?
 	Finn the Human: yeah, don'y worry. I'm over it.
-	Jake: Don't go and mess around with those little people guys again.
+	Jake the Dog: Don't go and mess around with those little people guys again.
 	Finn the Human: I won't
-	Jake: Hey! Want to go to Treetrunks?
+	Jake the Dog: Hey! Want to go to Treetrunks?
 	Finn the Human: Sure! Some pies and apples would be nice right now
-	Jake: Awesome! Meet you there. Maybe Mr. Pig can sing 4 us
+	Jake the Dog: Awesome! Meet you there. Maybe Mr. Pig can sing 4 us
 Finn the Human|Princess Bubblegum|Lumpy Space Princess
 	Lumpy Space Princess: I'm so lumpin' excited for promcoming tonight!
 	Princess Bubblegum: Banana Guards!
@@ -30,10 +30,9 @@ Finn the Human|Princess Bubblegum|Lumpy Space Princess
 	Lumpy Space Princess: They are sooo not HOT like me. These lumps are smokin!
 	Princess Bubblegum: That's just how they are, guys. They're sorta like an experiment gone wrong.
 	Finn the Human: Still though.
-Finn the Human|Jake|Vincent
-	Jake: sdasdsafasfdasf
+Finn the Human|Jake the Dog|Lumpy Space Princess
+	Jake the Dog: sdasdsafasfdasf
 	Finn the Human: safsafafaasf
-	Vincent: safasfasfasf
-	Vincent: new message
-Jake
-	Jake: kjhkj
+	Jake the Dog: Aren't we on a mission to civilize
+Jake the Dog
+	Jake the Dog: kjhkj

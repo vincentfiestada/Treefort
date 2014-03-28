@@ -2,5 +2,6 @@ Gender: M
 Bday-Month: 7
 Bday-Day: 14
 Bday-Year: 1997
-Jobs: Champion of the Candy Kingdom
+Jobs: Champion of the Candy Kingdom|King of the Goblin Kingdom
 Education: Wizard School
+Notifications: 

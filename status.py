@@ -90,8 +90,10 @@ class Status:
 		if self.rankLastUpdate[1] == len(self.thumbsups) and self.rankLastUpdate[2] == len(self.thumbsdowns) and currentSecs - self.time < 86400:
 			return self.rank
 
+		## CITATION
 		## Ranking algorithm is based on Reddit's ranking system, as described by:
 		## Amir Salihefendic on (www.amix.dk/blog/post/19588) Original concept (c) Reddit and Randall Munroe
+
 		today = datetime.fromtimestamp(currentSecs)
 		timediff = today - EPOCH
 		epoch_seconds = timediff.days * 86400 + timediff.seconds + (float(timediff.microseconds) / 1000000)
@@ -171,7 +173,8 @@ class FewFriendsStrategy(FriendsStrategy):
 		return sorted(newsfeed, key = Status.getRawTime, reverse = True)
 
 
-## The ManyFriendsStrategy is based on the Ranking system of Reddit by Randall Munroe
+## The ManyFriendsStrategy is based on the Ranking system of Reddit by Randall Munroe 
+## See the getRank() function for the Status class above
 class ManyFriendsStrategy(FriendsStrategy):
 	def aggregate(self, user, linkedCC):
 		currentSecs = time()
@@ -187,7 +190,7 @@ class ManyFriendsStrategy(FriendsStrategy):
 class NewsFeedAggregator: ## StrategyInContext class
 	## 'user' must be a User Object reference and 'linkedCC' a ControlCenter obj ref
 	def aggregate(self, user, linkedCC):
-		if len(user.getFriends()) < 10:
+		if len(user.getFriends()) <= 14:
 			strategy = FewFriendsStrategy()
 		else:
 			strategy = ManyFriendsStrategy()

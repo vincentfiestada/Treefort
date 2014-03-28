@@ -1,6 +1,0 @@
-Gender: M
-Bday-Month: 7
-Bday-Day: 23
-Bday-Year: 1996
-Jobs: |
-Education: University of the Philippines|Romblon State University
