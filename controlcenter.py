@@ -200,6 +200,13 @@ class UserConfigDatabase(Database):
 		self.Dict['education'] = list()
 		for x in handle.readline().replace('\n','').split(': ')[1].split('|'):
 			self.Dict['education'].append(x)
+		handle.readline()
+		self.Dict['notifs'] = list()
+		while True:
+			x = handle.readline().lstrip().rstrip()
+			if x == "":
+				break
+			self.Dict['notifs'].append(x)
 		handle.close()
 
 	def clearDict(self):
@@ -213,7 +220,10 @@ class UserConfigDatabase(Database):
 		handle.write("Bday-Year: "+str(self.Dict['bday']['year'])+"\n")
 		separator = "|"
 		handle.write("Jobs: "+separator.join(self.Dict['jobs'])+"\n")
-		handle.write("Education: "+separator.join(self.Dict['education']))
+		handle.write("Education: "+separator.join(self.Dict['education'])+"\n")
+		handle.write("Notifications: \n")
+		for x in self.Dict['notifs']:
+			handle.write(x + "\n")
 		handle.close()
 
 class ConcreteUserBuilder:
@@ -253,12 +263,17 @@ class ConcreteUserBuilder:
 		configFile.write("Bday-Day: " + user_bday['day'] + "\n")
 		configFile.write("Bday-Year: " + user_bday['year'] + "\n")
 		configFile.write("Jobs: \n")
-		configFile.write("Education: ")
+		configFile.write("Education: \n")
+		configFile.write("Notifications: \n")
 		configFile.close()
 		## copy default profile picture into folder
 		sourcepath = "img/defaultpic.gif"
 		targetpath = "users/"+user_name+"/profile.gif"
-		copy(sourcepath, targetpath)
+		if not os.path.exists(targetpath):
+			try:
+				copy(sourcepath, targetpath)
+			except:
+				return "There was an error making the file."
 		return "SUCCESS"
 
 class IControlCenter:
@@ -405,6 +420,12 @@ class IControlCenter:
 	def editUserById(self, uid, username = None, password = None, friendlist = None, profilepic = None, gender = None, bday = None, jobhistory = None, eduhistory = None):
 		targetUser = self.getUserById(uid)
 		oldusername = targetUser.getUsername()
+
+		## gather list of people to be notified; users who've marked this user as a 'Close Friend'
+		toBeNotified = list()
+		for friendship in IControlCenter.userRoster[uid].getFriends():
+			if uid in list(f.getFriendID() for f in IControlCenter.userRoster[friendship.getFriendID()].getFriends() if f.getStatus() == "Close Friend"):
+				toBeNotified.append(IControlCenter.userRoster[friendship.getFriendID()])
 		
 		if username != None:
 			username = username.lstrip().rstrip()
@@ -423,18 +444,51 @@ class IControlCenter:
 			password = password.lstrip().rstrip()
 			## check if empty
 			if password == "":
-				return "Password can't be empty"
+				return "Your Password can't be empty. (Leading and trailing whitespaces are automatically deleted)"
 			targetUser.setPassword(password)
 		if friendlist != None:
 			targetUser.setFriends(friendlist)
 		if gender != None:
+			oldgender = targetUser.getGender()
 			targetUser.setGender(gender)
+			newgender = targetUser.getGender()
+			if newgender != oldgender:
+				targetUser.addStatus(Status(poster = uid, text = "Pay Attention! I just set my gender to " + targetUser.getGender()))
+				for x in toBeNotified:
+					x.addNotification("Your close friend " + IControlCenter.userRoster[uid].getUsername() + " just edited their Profile Gender to: '" + newgender + "'.")
 		if bday != None:
+			oldbday = targetUser.getBdayDict()
 			targetUser.setBday(bday)
+			if bday != oldbday:
+				targetUser.addStatus(Status(poster = uid, text = "Hey, look! I've set my birthday to " + targetUser.getBday()))
+				for x in toBeNotified:
+					x.addNotification("Check it out! Your close friend " + IControlCenter.userRoster[uid].getUsername() + " was born on: '" + targetUser.getBday() + "'.")
 		if jobhistory != None:
+			oldjobhistory = list(x for x in targetUser.getJobHistory() if x != '')
 			targetUser.setJobHistory(jobhistory)
+			jobList = targetUser.getJobHistory()
+			if jobList == list():
+				jobStrList = "I don't have any jobs in my list."
+			else:
+				sep = "; "
+				jobStrList = "I've worked in the following jobs: " + sep.join(jobList) + "."
+			if jobList != oldjobhistory:
+				targetUser.addStatus(Status(poster = uid, text = "Did you Know? I just edited my Job History. " + jobStrList))
+				for x in toBeNotified:
+					x.addNotification("Your close friend " + IControlCenter.userRoster[uid].getUsername() + " has worked as: " + jobStrList)
 		if eduhistory != None:
+			oldeduhistory = list(x for x in targetUser.getEducationHistory() if x != '')
 			targetUser.setEducationHistory(eduhistory)
+			eduList = targetUser.getEducationHistory()
+			if eduList == list():
+				eduStrList = "I haven't listed any schools yet."
+			else:
+				sep = "; "
+				eduStrList = "I've studied in the following schools: " + sep.join(eduList) + "."
+			if eduList != oldeduhistory:
+				targetUser.addStatus(Status(poster = uid, text = "Word Up! I just edited my Education History. " + eduStrList))
+				for x in toBeNotified:
+					x.addNotification("Your close friend " + IControlCenter.userRoster[uid].getUsername() + " has studied as: " + eduStrList)
 
 		if username != oldusername: ## If username must be changed, edit folder name as well
 			##rename the folder of this user's settings
@@ -444,6 +498,10 @@ class IControlCenter:
 			updatedConfigDB = UserConfigDatabase(filename = "users/" + username + "/info.txt")
 			targetUser.editConfigDB(updatedConfigDB)
 			targetUser.setUsername(username)
+			IControlCenter.userRoster[uid].resetProfilePic()
+			targetUser.addStatus(Status(poster = uid, text = "Notice me! I just changed my username to '" + targetUser.getUsername() + "'." ))
+			for x in toBeNotified:
+				x.addNotification("Your close friend " + oldusername + " is now called " + IControlCenter.userRoster[uid].getUsername())
 
 		if profilepic != None and profilepic != "":
 			## copy profile picture into folder
@@ -451,33 +509,55 @@ class IControlCenter:
 			targetpath = "users/" + IControlCenter.userRoster[uid].getUsername() + "/profile.gif"
 			copy(sourcepath, targetpath)
 			IControlCenter.userRoster[uid].resetProfilePic()
+			targetUser.addStatus(Status(poster = uid, text = "See how amazing I look? I just changed my profile picture!" ))
+			for x in toBeNotified:
+				x.addNotification("Your close friend " + IControlCenter.userRoster[uid].getUsername() + " has a new profile picture.")
 
 		self.setSelected(uid)
 
 		return "SUCCESS"
+
+	def sendMessageByConversation(self, senderID, conversationObject, text):
+		conversationObject.newMessage(senderID, text)
+		## send a notification to the other members
+		senderName = IControlCenter.userRoster[senderID].getUsername()
+		for uid in conversationObject.getMembers():
+			if uid != senderID:
+				IControlCenter.userRoster[uid].addNotification("Heads up: " + senderName + " just sent a new message in one of your conversations. Open up your conversations window to see.")
 
 	def addFriendshipById(self, uid, friendID):
 		## add friendship to sender ('Requested' must be approved)
 		IControlCenter.userRoster[uid].addFriendship(Friendship(userid = friendID, status = "Requested"))
 		## add friendship to sendee ('Pending' can approve 'Requested')
 		IControlCenter.userRoster[friendID].addFriendship(Friendship(userid = uid, status = "Pending"))
+		## send a notification to the requested user
+		IControlCenter.userRoster[friendID].addNotification("You should check out your friends list. " + IControlCenter.userRoster[uid].getUsername() + " just sent you a friend request.")
 
 	def unfriendById(self, uid1, uid2):
 		IControlCenter.userRoster[uid1].unfriendById(uid2)
 		IControlCenter.userRoster[uid2].unfriendById(uid1)
+		IControlCenter.userRoster[uid1].addNotification("You and " + IControlCenter.userRoster[uid2].getUsername() + " are no longer friends.")
+		IControlCenter.userRoster[uid2].addNotification("You and " + IControlCenter.userRoster[uid1].getUsername() + " are no longer friends.")
 
 	def addStatusById(self, uid, text):
 		## This function will also parse tags made inside the text of the status
 
 		asterSep = text.split('*')
+		blanksep = ""
+		text = blanksep.join(asterSep)
 		taggedIDs = list()
 		for i in range(len(asterSep)):
 			try:
-				taggedIDs.append(self.getUserByName(asterSep[i]).getUserID())
+				detectedID = self.getUserByName(asterSep[i]).getUserID()
+				taggedIDs.append(detectedID)
+				IControlCenter.userRoster[detectedID].addNotification("You were tagged in a status posted by " + IControlCenter.userRoster[uid].getUsername() + ": '" + text + "'.")
 			except:
 				continue
-		blanksep = ""
-		text = blanksep.join(asterSep)
+
+		## send notification to users who have marked this user as their close friend
+		for friendship in IControlCenter.userRoster[uid].getFriends():
+			if uid in list(f.getFriendID() for f in IControlCenter.userRoster[friendship.getFriendID()].getFriends() if f.getStatus() == "Close Friend"):
+				IControlCenter.userRoster[friendship.getFriendID()].addNotification(IControlCenter.userRoster[uid].getUsername() + "--whom you marked as a Close Friend posted a status: '" + text + "'.")
 
 		IControlCenter.userRoster[uid].addStatus(Status(text = text, poster = uid, tags = taggedIDs))
 
@@ -516,11 +596,12 @@ class IControlCenter:
 					ActiveUser.activeUsers.append(uidCount)
 				uidCount += 1
 				## update config Database
-				userprofile.configDB.editEntryByID('gender', newvalue = userprofile.getGender()[0])
-				userprofile.configDB.editEntryByID('bday', newvalue = userprofile.getBdayDict())
-				userprofile.configDB.editEntryByID('jobs', newvalue = userprofile.getJobHistory())
-				userprofile.configDB.editEntryByID('education', newvalue = userprofile.getEducationHistory())
-				userprofile.configDB.exportDB()
+				userprofile.getConfigDB().editEntryByID('gender', newvalue = userprofile.getGender()[0])
+				userprofile.getConfigDB().editEntryByID('bday', newvalue = userprofile.getBdayDict())
+				userprofile.getConfigDB().editEntryByID('jobs', newvalue = userprofile.getJobHistory())
+				userprofile.getConfigDB().editEntryByID('education', newvalue = userprofile.getEducationHistory())
+				userprofile.getConfigDB().editEntryByID('notifs', newvalue = list(x.getDescription() for x in userprofile.getNotifications() if x.isRead() == False))
+				userprofile.getConfigDB().exportDB()
 				## update friends
 				## first, build list of a formatted friends
 				friendslist = list()

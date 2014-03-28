@@ -1,6 +1,9 @@
 from Tkinter import *
-from ttk import Frame, Combobox
+from ttk import Combobox, Notebook
 from controlcenter import *
+from os import startfile
+from sys import platform
+from subprocess import call
 import tkMessageBox, tkFileDialog
 
 from userproxy import *
@@ -10,7 +13,7 @@ WINDOW_HEIGHT = 600
 DATABASE_FILENAME = "db.txt"
 DATABASE_CONV_FILENAME ="db_conv.txt"
 DATABASE_FEED_FILENAME = "db_feed.txt"
-PROGRAM_VERSION = "0.8.8 Alpha"
+PROGRAM_VERSION = "0.9.5.4"
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
 font0 = ("Segoe UI", 9, "bold")
@@ -37,6 +40,10 @@ adminFrame = Frame(windowPanes, relief=FLAT)
 userFrame = Frame(windowPanes, relief=FLAT)
 windowPanes.add(adminFrame, width=WINDOW_WIDTH*0.18)
 windowPanes.add(userFrame, width=WINDOW_WIDTH*0.82)
+
+def end():
+	cc.saveDB()
+	mainWindow.destroy()
 
 def menu_showinfobox():
 	aboutwin = AboutWindow()
@@ -229,13 +236,13 @@ class AboutWindow:
 	LogoImg = PhotoImage(file = "img/logo_transparent.gif")
 	LogoLabel = Label(aboutBox, image = LogoImg)
 	LogoLabel.pack(side=TOP,fill=X)
-	ProgramInfoFrame = LabelFrame(aboutBox, text="Program Info", padx = 7, pady = 7)
+	ProgramInfoFrame = LabelFrame(aboutBox, text="Program Info", padx = 7, pady = 7, relief = GROOVE)
 	ProgramInfoFrame.pack(side=TOP,fill=X)
 	ProgramInfoLabel1 = Label(ProgramInfoFrame, text="Program Name: Tree Fort\n\nVersion: "+PROGRAM_VERSION)
 	ProgramInfoLabel1.pack(side=LEFT, expand = True)
-	ProgramCreditsFrame = LabelFrame(aboutBox, text="Credits", padx = 7, pady = 7)
+	ProgramCreditsFrame = LabelFrame(aboutBox, text="Credits", padx = 7, pady = 7, relief = GROOVE)
 	ProgramCreditsFrame.pack(side=TOP,fill=X)
-	ProgramCreditsLabel1 = Label(ProgramCreditsFrame, text="Copyright 2014 Vincent Paul Fiestada\nvffiestada@upd.edu.ph\n\nIcons by Joseph Wain\nglyphish.com")
+	ProgramCreditsLabel1 = Label(ProgramCreditsFrame, text="Copyright 2014 Vincent Paul Fiestada\nvffiestada@upd.edu.ph\n\nFarm Fresh Icons by Fat Cow Web Hosting\nfatcow.com/free-icons")
 	ProgramCreditsLabel1.pack(side=LEFT, expand = True)
 	aboutBox.withdraw()
 	aboutBox.protocol("WM_DELETE_WINDOW", aboutBox.withdraw)
@@ -271,7 +278,7 @@ class LoginWindow: ## A singleton Window class
 	loginUsernameBox.pack(side = LEFT, fill = X)
 	loginPasswordLabelImg = Label(loginWidgetFrame2, image = keyIcon)
 	loginPasswordLabelImg.pack(side = LEFT)
-	loginPasswordLabelTxt = Label(loginWidgetFrame2, text = "    Password: ", font=font1)
+	loginPasswordLabelTxt = Label(loginWidgetFrame2, text = "Password: ", font=font1)
 	loginPasswordLabelTxt.pack(side = LEFT)
 	loginPasswordBox = Entry(loginWidgetFrame2, font=font2, show = '*', textvariable = loginpassword, relief = GROOVE)
 	loginPasswordBox.pack(side = LEFT, fill = X)
@@ -317,6 +324,139 @@ class LoginWindow: ## A singleton Window class
 		else:
 			tkMessageBox.showinfo("Login Failed", resp)
 		return
+
+class UserProfileInfoWindow:
+	currentWin = None
+	def __init__(self, master, user):
+		if UserProfileInfoWindow.currentWin != None:
+			UserProfileInfoWindow.currentWin.destroy()
+		self.selectedUser = user
+		if self.selectedUser == None:
+			return self.close()
+		self.infoIcon = PhotoImage(file = "img/info.gif")
+		self.box = Toplevel(master, padx = 14, pady = 14)
+		self.box.protocol("WM_DELETE_WINDOW", self.close)
+		self.box.title("About - " + self.selectedUser.getUsername())
+		UserProfileInfoWindow.currentWin = self.box
+		self.frame0 = Frame(self.box)
+		self.frame0.pack(side = TOP, fill = BOTH, expand = True)
+		self.frame1 = LabelFrame(self.frame0, padx = 5, pady = 5, relief = FLAT)
+		self.frame1.pack(side = TOP)
+		self.frame2 = LabelFrame(self.frame0, padx = 5, pady = 5, relief = FLAT)
+		self.frame2.pack(side = TOP)
+
+		self.icon = Label(self.frame1, image = self.infoIcon)
+		self.icon.pack(side = LEFT)
+		self.title = Label(self.frame1, text = "About " + self.selectedUser.getUsername(), font = font3, fg = "#3197D1")
+		self.title.pack(side = LEFT)
+		try:
+			profilepictureobj = PhotoImage(file = self.selectedUser.getProfilePic())
+		except:
+			profilepictureobj = PhotoImage(file = "img/defaultpic.gif")
+		self.profilePic = Label(self.frame2, image = profilepictureobj, width = 128, height = 128)
+		self.profilePic.pack(side = LEFT, fill = Y, expand = True)
+		self.profilePic.image = profilepictureobj
+		self.profileDisplayFrame1 = Frame(self.frame2)
+		self.profileDisplayFrame1.pack(side = TOP, fill=X)
+		self.profileName = Label(self.profileDisplayFrame1, text=self.selectedUser.getUsername(), font = font3, padx = 5)
+		self.profileName.pack(side=LEFT)
+		self.profileDisplayFrame2 = Frame(self.frame2)
+		self.profileDisplayFrame2.pack(side = TOP, fill=X)
+		self.profileSubLabel1 = Label(self.profileDisplayFrame2, font = font2, justify=LEFT, padx = 5, pady =  0.5)
+		gender = self.selectedUser.getGender()
+		self.profileSubLabel1.config(text = "Gender: " + gender)
+		if gender == "Male":
+			self.profileSubLabel1.config(fg = "#007CFF")
+		elif gender == "Female":
+			self.profileSubLabel1.config(fg = "#FF006E")
+		else:
+			self.profileSubLabel1.config(fg = "#A0A0A0")
+		self.profileSubLabel1.pack(side=LEFT)
+		self.profileSubLabel2 = Label(self.profileDisplayFrame2, font = font2, justify=LEFT, padx = 5, fg = "#7F006E", text = "Age: " + str(self.selectedUser.getAge()))
+		self.profileSubLabel2.pack(side=LEFT)
+		self.profileSubLabel3 = Label(self.profileDisplayFrame2, font = font2, justify=LEFT, padx = 5, fg = "#21007F", text = "Birthday: " + self.selectedUser.getBday())
+		self.profileSubLabel3.pack(side=LEFT)
+		self.profileDisplayFrame3 = Frame(self.frame2)
+		self.profileDisplayFrame3.pack(side = TOP, fill=X)
+		sep = "; "
+		self.profileSubLabel4 = Label(self.profileDisplayFrame3, font = font2, justify=LEFT, padx = 5, fg = "#9E2400", text = "Job History: " + sep.join(self.selectedUser.getJobHistory()))
+		self.profileSubLabel4.pack(side=LEFT)
+		self.profileDisplayFrame4 = Frame(self.frame2)
+		self.profileDisplayFrame4.pack(side = TOP, fill=X)
+		self.profileSubLabel5 = Label(self.profileDisplayFrame4, font = font2, justify=LEFT, padx = 5, fg = "#004A7F", text = "Education History: " + sep.join(self.selectedUser.getEducationHistory()))
+		self.profileSubLabel5.pack(side=LEFT)
+
+
+		self.open()
+
+	def open(self):
+		self.box.state("zoomed")
+
+	def close(self):
+		UserProfileInfoWindow.currentWin = None
+		self.box.destroy()
+
+class NotificationsWindow:
+	currentWin = None
+	def __init__(self, master, user, widgetToEdit, widgetLabel = ""):
+		if NotificationsWindow.currentWin != None:
+			NotificationsWindow.currentWin.state("zoomed")
+			return
+		self.selectedUser = user
+		if self.selectedUser == None:
+			return self.close()
+		self.unReadCount = 0
+		self.widgetToEdit = widgetToEdit
+		self.widgetLabel = widgetLabel
+		self.bellIcon = PhotoImage(file = "img/bell.gif")
+		self.box = Toplevel(master, padx = 14, pady = 14)
+		self.box.protocol("WM_DELETE_WINDOW", self.close)
+		self.box.title("Notifications - " + self.selectedUser.getUsername())
+		NotificationsWindow.currentWin = self.box
+		self.frame0 = Frame(self.box)
+		self.frame0.pack(side = TOP, fill = BOTH, expand = True)
+		self.frame1 = LabelFrame(self.frame0, padx = 5, pady = 5, relief = FLAT)
+		self.frame1.pack(side = TOP)
+		self.hint = Label(self.frame0, text = "(Click on a notification to mark it as read and discard it.)", font = font4)
+		self.hint.pack(side = TOP)
+		self.listbox = Listbox(self.frame0, relief = GROOVE, font = font2, selectmode = SINGLE, selectbackground = "#D5700A", selectforeground = "#FFFFFF")
+		self.listbox.pack(side = TOP, fill = BOTH, expand = True)
+		self.yscrollbar = Scrollbar(self.listbox, orient = VERTICAL, command = self.listbox.yview)
+		self.yscrollbar.pack(side = RIGHT, fill = Y)
+		self.xscrollbar = Scrollbar(self.listbox, orient = HORIZONTAL, command = self.listbox.xview)
+		self.xscrollbar.pack(side = BOTTOM, fill = X)
+		self.listbox.config(yscrollcommand = self.yscrollbar.set, xscrollcommand = self.xscrollbar.set)
+
+		self.icon = Label(self.frame1, image = self.bellIcon)
+		self.icon.pack(side = LEFT)
+		self.title = Label(self.frame1, text = self.selectedUser.getUsername() + ": Notifications", font = font3, fg = "#D5700A")
+		self.title.pack(side = LEFT)
+		self.showedNotifs = list()
+		for x in reversed(list(x for x in self.selectedUser.getNotifications() if not x.isRead())):
+			self.listbox.insert(END, x.getDescription())
+			self.showedNotifs.append(x)
+			self.unReadCount += 1
+
+		self.listbox.bind("<ButtonRelease-1>", self.changeSelectedNotification)
+
+		self.selectedNotif = None
+		self.open()
+
+	def changeSelectedNotification(self, event = None):
+		try:
+			self.selectedNotif = self.showedNotifs[int(self.listbox.curselection()[0])]
+		except:
+			return
+		self.selectedNotif.markRead()
+		self.unReadCount -= 1
+
+	def open(self):
+		self.box.state("zoomed")
+
+	def close(self):
+		NotificationsWindow.currentWin = None
+		self.box.destroy()
+		self.widgetToEdit.config(text = self.widgetLabel + " [" + str(self.unReadCount) + "]")
 
 class ConversationWindow:
 	messageIcon = PhotoImage(file = "img/message.gif")
@@ -415,9 +555,10 @@ class ConversationWindow:
 		ConversationWindow.box.state("zoomed")
 		ConversationWindow.box.deiconify()
 		ConversationWindow.box.protocol("WM_DELETE_WINDOW", self.close)
-		ConversationWindow.newConversationBox.protocol("WM_DELETE_WINDOW", ConversationWindow.newConversationBox.withdraw)
-		ConversationWindow.deleteMessagesBox.protocol("WM_DELETE_WINDOW", ConversationWindow.deleteMessagesBox.withdraw)
+		ConversationWindow.newConversationBox.protocol("WM_DELETE_WINDOW", self.closeNewConvBox)
+		ConversationWindow.deleteMessagesBox.protocol("WM_DELETE_WINDOW", self.closeDelMsgBox)
 		ConversationWindow.title.config(text = self.selectedUser.getUsername() + ": Conversations")
+		ConversationWindow.box.title("Conversations - " + self.selectedUser.getUsername())
 		## reset and disable new message controls
 		ConversationWindow.newMessageText.set("")
 		ConversationWindow.newMessageBox.config(state = DISABLED)
@@ -443,7 +584,7 @@ class ConversationWindow:
 		ConversationWindow.sendMessageButton.bind("<ButtonRelease-1>", self.submit)
 		ConversationWindow.newMessageBox.bind("<Return>", self.submit)
 		ConversationWindow.newConversationButton.config(command = self.showNewConversationBox)
-		if list(f for f in self.selectedUser.getFriends() if  f.getStatus() != "Requested" and f.getStatus() != "Pending") != list():
+		if list(f for f in self.selectedUser.getFriends() if  f.getStatus() not in ["Requested", "Pending", "Blocked"]) != list():
 			ConversationWindow.newConversationButton.config(state = NORMAL)
 		else:
 			ConversationWindow.newConversationButton.config(state = DISABLED)
@@ -453,6 +594,14 @@ class ConversationWindow:
 		ConversationWindow.deleteMessagesBox.bind("<Return>", self.deleteMessages)
 		ConversationWindow.inviteFriendButton.config(command = self.showInviteFriendsBox)
 		ConversationWindow.deleteMessagesButton.config(command = self.showDeleteMessagesBox, state = DISABLED)
+
+	def closeNewConvBox(self, event = None):
+		ConversationWindow.newConversationBox.withdraw()
+		ConversationWindow.box.deiconify()
+
+	def closeDelMsgBox(self, event = None):
+		ConversationWindow.deleteMessagesBox.withdraw()
+		ConversationWindow.box.deiconify()
 	
 	def updateMessageDisplay(self, event = None):
 		selectedID = ConversationWindow.conversationsListBox.curselection()
@@ -477,10 +626,7 @@ class ConversationWindow:
 			ConversationWindow.deleteMessagesButton.config(state = NORMAL)
 		else:
 			ConversationWindow.deleteMessagesButton.config(state = DISABLED)
-		if {f.getFriendID() for f in self.selectedUser.getFriends() if f.getStatus() != "Requested" and f.getStatus() != "Pending"} in {m for m in self.selectedConversation.getMembers()}:
-			ConversationWindow.inviteFriendButton.config(state = NORMAL)
-		else:
-			ConversationWindow.inviteFriendButton.config(state = DISABLED)
+		ConversationWindow.inviteFriendButton.config(state = NORMAL)
 		lineNum = 1
 		for x in reversed(self.selectedConversation.getMessages()):
 			sendername = self.linkedCC.getUserById(x.getSender()).getUsername()
@@ -536,7 +682,7 @@ class ConversationWindow:
 			ConversationWindow.box.deiconify()
 			return
 		if self.selectedConversation != None:
-			self.selectedConversation.newMessage(self.selectedUser.getUserID(), msg)
+			self.linkedCC.sendMessageByConversation(senderID = self.selectedUser.getUserID(), conversationObject = self.selectedConversation, text = msg)
 		ConversationWindow.newMessageText.set("")
 		self.updateMessageDisplay()
 
@@ -545,12 +691,12 @@ class ConversationWindow:
 		ConversationWindow.newConversationBoxSubmitButton.bind("<ButtonRelease-1>", self.addConversation)
 		ConversationWindow.newConversationMembersListBox.delete(0, END)
 		for friend in self.selectedUser.getFriends():
-			if friend.getStatus() != "Requested" and friend.getStatus() != "Pending":
+			if friend.getStatus() not in ["Requested", "Pending", "Blocked"]:
 				ConversationWindow.newConversationMembersListBox.insert(END, self.linkedCC.getUserById(friend.getFriendID()).getUsername())
 		if ConversationWindow.newConversationMembersListBox.get(0, END) != ():
 			ConversationWindow.newConversationBox.deiconify()
 		else:
-			tkMessageBox.showinfo("No friends to add", "You have no friends that can be invited to a new conversation. Friends that are [Requested] or [Pending] cannot be invited to your conversation.")
+			tkMessageBox.showinfo("No friends to add", "You have no friends that can be invited to a new conversation. Friends that are [Requested], [Pending], or [Blocked] cannot be invited to your conversation.")
 			ConversationWindow.box.deiconify()
 
 	def showInviteFriendsBox(self, event = None):
@@ -563,12 +709,12 @@ class ConversationWindow:
 		alreadyMembers = self.selectedConversation.getMembers()
 		for friend in self.selectedUser.getFriends():
 			friendID = friend.getFriendID()
-			if friendID not in alreadyMembers and friend.getStatus() != "Requested" and friend.getStatus() != "Pending":
+			if friendID not in alreadyMembers and friend.getStatus() not in ["Requested", "Pending", "Blocked"]:
 				ConversationWindow.newConversationMembersListBox.insert(END, self.linkedCC.getUserById(friendID).getUsername())
 		if ConversationWindow.newConversationMembersListBox.get(0, END) != ():
 			ConversationWindow.newConversationBox.deiconify()
 		else:
-			tkMessageBox.showinfo("No friends left to add", "You no longer have any other friends to invite to this conversation. Friends that are [Requested] or [Pending] cannot be invited to your conversation.")
+			tkMessageBox.showinfo("No friends left to add", "You no longer have any other friends to invite to this conversation. Friends that are [Requested], [Pending], or [Blocked] cannot be invited to your conversation.")
 			ConversationWindow.box.deiconify()
 
 	def showDeleteMessagesBox(self, event = None):
@@ -773,7 +919,7 @@ class EditProfileWindow:
 	usernameBox.pack(side = LEFT, fill = X, expand = True)
 	passwordLabelImg = Label(editprofileboxFrame20, image = keyIcon)
 	passwordLabelImg.pack(side = LEFT)
-	passwordLabelTxt = Label(editprofileboxFrame20, text = "    Password: ", font=font1)
+	passwordLabelTxt = Label(editprofileboxFrame20, text = "Password: ", font=font1)
 	passwordLabelTxt.pack(side = LEFT)
 	passwordBox = Entry(editprofileboxFrame20, font=font2, relief = GROOVE, textvariable = profilePassword)
 	passwordBox.pack(side = LEFT, fill = X, expand = True)
@@ -865,12 +1011,12 @@ class EditProfileWindow:
 				EditProfileWindow.eduHistoryBox.insert(END, "\n")
 			EditProfileWindow.eduHistoryBox.insert(END, school)
 		EditProfileWindow.settingsTitle.config(text = EditProfileWindow.profileUsername.get() + " : Settings")
-		EditProfileWindow.profilepicButton.bind("<ButtonRelease-1>", self.getProfilepicFilename)
-		EditProfileWindow.saveButton.bind("<ButtonRelease-1>", self.save)
-		EditProfileWindow.deleteMeButton.bind("<ButtonRelease-1>", self.DANGER_destroyUser)
+		EditProfileWindow.profilepicButton.config(command = self.getProfilepicFilename)
+		EditProfileWindow.saveButton.config(command =  self.save)
+		EditProfileWindow.deleteMeButton.config(command = self.DANGER_destroyUser)
 		EditProfileWindow.editprofilebox.title("Edit Profile Information - " + usr.getUsername())
 		EditProfileWindow.editprofilebox.state("zoomed")
-		EditProfileWindow.editprofilebox.deiconify()
+		EditProfileWindow.editprofilebox.bind("<Return>", self.save)
 	
 	def getProfilepicFilename(self, event = None):
 		EditProfileWindow.profilePicture.set(tkFileDialog.askopenfilename(filetypes = [('GIF Images', '.gif')]))
@@ -941,7 +1087,7 @@ class EditProfileWindow:
 		EditProfileWindow.editprofilebox.withdraw()
 
 class FriendshipEditWindow():
-	slidersIcon = PhotoImage(file = "img/sliders.gif")
+	slidersIcon = PhotoImage(file = "img/user_edit.gif")
 	personaIcon = PhotoImage(file = "img/persona.gif")
 	box = Toplevel(mainWindow, padx = 14, pady = 14)
 	box.title("Change Friendship Status")
@@ -1028,7 +1174,16 @@ class FriendshipEditWindow():
 	def save(self, event = None):
 		newstatus = FriendshipEditWindow.lastsavedStatus.get()
 		for f in self.affected:
-			f.setStatus(newstatus)
+			if f.getStatus() != "Pending":
+				f.setStatus(newstatus)
+			else:
+				usrID = self.targetUser.getUserID()
+				for friend in self.affected:
+					friend.setStatus(newstatus)
+					for x in self.linkedCC.getUserById(friend.getFriendID()).getFriends():
+						if x.getFriendID() == usrID:
+							x.setStatus('F')
+							break
 		FriendshipEditWindow.box.withdraw()
 		self.savecommand()
 
@@ -1079,16 +1234,16 @@ passwordBox = Label(controlBoxFrame3, font=font2)
 passwordBox.pack(side=LEFT)
 controlBoxFrame4 = LabelFrame(adminFrame, pady = 10, relief = FLAT)
 controlBoxFrame4.pack(side=TOP, fill=Y, expand = True)
-autologinButton = Button(controlBoxFrame4, font = font1, text = "Auto Login", bg = "#00A3E8", activebackground = "#00A3E8", fg = "#000000", activeforeground = "#000000", padx = 10, relief = GROOVE, state = DISABLED)
+autologinButton = Button(controlBoxFrame4, font = font1, text = "Auto Login", bg = "#0197D7", activebackground = "#0197D7", fg = "#000000", activeforeground = "#000000", padx = 10, relief = GROOVE, state = DISABLED)
 autologinButton.pack(side = TOP, fill = X)
-newUserButton = Button(controlBoxFrame4, font = font1, text = "Sign Up", bg = "#A3FF00", activebackground = "#A3FF00", fg = "#000000", activeforeground = "#000000", padx = 10, relief = GROOVE)
+newUserButton = Button(controlBoxFrame4, font = font1, text = "Sign Up", bg = "#4CD701", activebackground = "#4CD701", fg = "#000000", activeforeground = "#000000", padx = 10, relief = GROOVE)
 newUserButton.pack(side = TOP, fill = X)
 
 profileDisplay = Frame(userFrame, relief = FLAT, height=128)
 profileDisplay.pack(side=TOP, fill=X)
 defphotofilename = "img/defaultpic.gif"
 profilepicfile = PhotoImage(file = defphotofilename)
-profilePicture = Label(profileDisplay, bg="#ffffff", height = 128, width=128, image=profilepicfile, padx = 0, pady = 0)
+profilePicture = Label(profileDisplay, bg="#ffffff", height = 128, width=128, image=profilepicfile)
 profilePicture.pack(side=LEFT)
 profileDisplayFrame1 = Frame(profileDisplay)
 profileDisplayFrame1.pack(side = TOP, fill=X)
@@ -1171,16 +1326,22 @@ def autoLogin():
 	cc.loginUser(selectedUser.getUsername(), selectedUser.getPassword())
 	updateAwesomesauceControls()
 
+def viewnotifications():
+	notifWindow = NotificationsWindow(mainWindow, cc.getSelected(), notificationsButton, "View Notifications")
+	del notifWindow
+
 newUserButton.config(command = registerNewUser)
 autologinButton.config(command = autoLogin)
 
-addFriendButton = Button(profileDisplayFrame3, text="Add a Friend", state=DISABLED, font=font1, bg="#C0C0C0", fg="black", activebackground = "#C0C0C0", activeforeground = "black", command = addfriend, relief = GROOVE)
+notificationsButton = Button(profileDisplayFrame3, text="View Notifications [0]", state=DISABLED, font=font2, bg="#C0C0C0", fg="#ffffff", activebackground = "#C0C0C0", activeforeground = "#ffffff", command = viewnotifications, relief = GROOVE, pady = 0)
+notificationsButton.pack(side=LEFT)
+addFriendButton = Button(profileDisplayFrame3, text="Add a Friend", state=DISABLED, font=font2, bg="#C0C0C0", fg="#ffffff", activebackground = "#C0C0C0", activeforeground = "#ffffff", command = addfriend, relief = GROOVE, pady = 0)
 addFriendButton.pack(side=LEFT)
-vewConversationsButton = Button(profileDisplayFrame3, text="View Conversations", state=DISABLED, font=font1, bg="#C0C0C0", fg="black", activebackground = "#C0C0C0", activeforeground = "black", command = viewConversations, relief = GROOVE)
+vewConversationsButton = Button(profileDisplayFrame3, text="View Conversations", state=DISABLED, font=font2, bg="#C0C0C0", fg="#ffffff", activebackground = "#C0C0C0", activeforeground = "#ffffff", command = viewConversations, relief = GROOVE, pady = 0)
 vewConversationsButton.pack(side=LEFT)
-profileSettingsButton = Button(profileDisplayFrame3, text="Edit Profile", state=DISABLED, font=font1, bg="#C0C0C0", fg="black", activebackground = "#C0C0C0", activeforeground = "black", command = editprofile, relief = GROOVE)
+profileSettingsButton = Button(profileDisplayFrame3, text="Edit Profile", state=DISABLED, font=font2, bg="#C0C0C0", fg="#ffffff", activebackground = "#C0C0C0", activeforeground = "#ffffff", command = editprofile, relief = GROOVE, pady = 0)
 profileSettingsButton.pack(side=LEFT)
-loginoutButton = Button(profileDisplayFrame3, text="Log In", font=font1, command=logInOut, bg="#004A7F", fg="white", activebackground = "#004A7F", activeforeground = "white", relief = GROOVE)
+loginoutButton = Button(profileDisplayFrame3, text="Log In", font=font2, command=logInOut, bg="#004A7F", fg="white", activebackground = "#004A7F", activeforeground = "white", relief = GROOVE, pady = 0)
 loginoutButton.pack(side=LEFT)
 
 friendsDisplay = Frame(userFrame, relief = FLAT, width = 240)
@@ -1200,11 +1361,6 @@ friendNameLabel = Label(friendsSubFrame2, font = font0, fg = "#FF3A27", wrapleng
 friendNameLabel.pack(side = TOP, fill=X)
 friendshipStatusLabel = Label(friendsSubFrame2, font = font4, fg = "#000000", wraplength=170)
 friendshipStatusLabel.pack(side = TOP, fill=X)
-friendshipGroupLabel = Label(friendsSubFrame2, font = font4, fg = "#000000", wraplength=170)
-friendshipGroupLabel.pack(side = TOP, fill=X)
-
-nextIcon = PhotoImage(file = "img/next.gif")
-prevIcon = PhotoImage(file = "img/prev.gif")
 
 statusBoxFrame = Frame(userFrame, relief = FLAT)
 statusBoxFrame.pack(side = TOP, fill = X)
@@ -1223,26 +1379,26 @@ statusBoxSubFrame3 = Frame(statusBoxFrame, relief = FLAT)
 statusBoxSubFrame3.pack(side = TOP, fill = X)
 postStatusButton = Button(statusBoxSubFrame3, text = "Post", font = font1, fg = "#ffffff", activeforeground = "#ffffff", bg = "#C0C0C0", activebackground = "#C0C0C0", state = DISABLED, relief = GROOVE)
 postStatusButton.pack(side = LEFT)
+statusBoxTaggingHint = Label(statusBoxSubFrame3, text = "", font = font4, relief = FLAT)
+statusBoxTaggingHint.pack(side = LEFT, fill = X)
 
-newsFeedArea = Frame(userFrame, relief = FLAT)
-newsFeedArea.pack(side = TOP, fill = BOTH, expand = True)
+explorationArea = Notebook(userFrame)
+explorationArea.pack(side = TOP, fill = BOTH, expand = True)
 
-newsFeedControls = Frame(newsFeedArea, relief = FLAT)
-newsFeedControls.pack(side = TOP, fill = X)
-newsFeedLabel = Label(newsFeedControls, text = "\nNews Feed: ", font = font1)
-newsFeedLabel.pack(side = LEFT)
-nextInFeedButton = Button(newsFeedControls, image = nextIcon, state = DISABLED, relief = GROOVE)
-prevInFeedButton = Button(newsFeedControls, image = prevIcon, state = DISABLED, relief = GROOVE)
-nextInFeedButton.pack(side = RIGHT)
-prevInFeedButton.pack(side = RIGHT)
+newsFeedArea = Frame(explorationArea, relief = FLAT)
 
 newsFeedSlide = Frame(newsFeedArea, relief = SUNKEN)
-newsFeedSlide.pack(side = TOP, fill = BOTH, expand = True)
+newsFeedSlide.pack(side = LEFT, fill = BOTH, expand = True)
+pp = PhotoImage(file = "img/defaultpic.gif")
+statusPosterDetailsSubFrame0 = Frame(newsFeedSlide)
+statusPosterDetailsSubFrame0.pack(side = LEFT, fill = Y)
+statusPosterProfilePic = Label(statusPosterDetailsSubFrame0, image = pp, width = 128, height = 128, pady = 2, padx = 2)
+statusPosterProfilePic.pack(side = TOP)
+infoIcon = PhotoImage(file = "img/info.gif")
+aboutPosterButton = Button(statusPosterDetailsSubFrame0, image = infoIcon, relief = GROOVE, bg = "#82B8FF", activebackground = "#82B8FF")
+aboutPosterButton.pack(side = TOP, fill = X)
 statusPosterDetailsFrame = Frame(newsFeedSlide)
 statusPosterDetailsFrame.pack(side = TOP, fill = X)
-pp = PhotoImage(file = "img/defaultpic.gif")
-statusPosterProfilePic = Label(statusPosterDetailsFrame, image = pp, width = 128, height = 128, state = DISABLED, pady = 2, padx = 2)
-statusPosterProfilePic.pack(side = LEFT)
 statusPosterDetailsSubFrame1 = Frame(statusPosterDetailsFrame)
 statusPosterDetailsSubFrame1.pack(side = TOP, fill = X)
 statusPosterName = Label(statusPosterDetailsSubFrame1, text = "", font = font2, padx = 2)
@@ -1255,6 +1411,12 @@ statusPosterDetailsSubFrame21 = Frame(statusPosterDetailsFrame, relief = FLAT)
 statusPosterDetailsSubFrame21.pack(side = TOP, fill = X)
 statusThumbsUpsCount = Label(statusPosterDetailsSubFrame1, text = "", font = font2, fg = "#32B71B", padx = 2, pady = 2)
 statusThumbsUpsCount.pack(side = LEFT)
+nextIcon = PhotoImage(file = "img/next.gif")
+prevIcon = PhotoImage(file = "img/prev.gif")
+nextInFeedButton = Button(statusPosterDetailsSubFrame1, image = nextIcon, state = DISABLED, relief = GROOVE)
+prevInFeedButton = Button(statusPosterDetailsSubFrame1, image = prevIcon, state = DISABLED, relief = GROOVE)
+nextInFeedButton.pack(side = RIGHT)
+prevInFeedButton.pack(side = RIGHT)
 thumbsUpButton = Button(statusPosterDetailsSubFrame21, fg = "#32B71B", font = font4, activeforeground = "#32B71B", text = "+Thumbs Up", state = DISABLED, relief = GROOVE)
 thumbsUpButton.pack(side = LEFT)
 statusThumbsDownsCount = Label(statusPosterDetailsSubFrame1, text = "", font = font2, fg = "#E83759", padx = 2, pady = 2)
@@ -1274,15 +1436,13 @@ statusTextScrollBar.config(command = statusText.yview)
 statusText.pack(side = LEFT, fill = X, expand = True)
 statusTaggedDisplay = Label(statusPosterDetailsSubFrame31, text = "", font = font4, pady = 2, fg = "#1241CE", relief = FLAT)
 statusTaggedDisplay.pack(side = LEFT, fill = X)
-commentsBufferFrame = Frame(newsFeedSlide, width = 132, relief = FLAT)
-commentsBufferFrame.pack(side = LEFT, fill = Y)
 commentsFrame = Frame(newsFeedSlide, relief = FLAT)
 commentsFrame.pack(side = LEFT, fill = BOTH, expand = True)
 commentsSubFrame1 = Frame(commentsFrame)
 commentsSubFrame1.pack(side = TOP, fill = X)
 commentsSubFrame2 = Frame(commentsFrame)
 commentsSubFrame2.pack(side = BOTTOM, fill = X)
-commentsLabel = Label(commentsSubFrame1, text = "", font = font4, justify = "left")
+commentsLabel = Label(commentsSubFrame1, font = font4, justify = "left", text = "Comment: ")
 commentsLabel.pack(side = LEFT)
 commentsScrollBar = Scrollbar(commentsFrame)
 commentsScrollBar.pack(side = RIGHT, fill = Y)
@@ -1294,6 +1454,76 @@ writeCommentBox.pack(side = LEFT, fill = X, expand = True)
 submitCommentButton = Button(commentsSubFrame2, text = "Submit Comment", font = font4, fg = "#1241CE", activeforeground = "#1241CE", state = DISABLED, relief = GROOVE)
 submitCommentButton.pack(side = LEFT)
 
+timelinesArea = Frame(explorationArea, relief = FLAT)
+
+timelineSlide = Frame(timelinesArea, relief = SUNKEN)
+timelineSlide.pack(side = TOP, fill = BOTH, expand = True)
+timelinestatusPosterDetailsSubFrame0 = Frame(timelineSlide)
+timelinestatusPosterDetailsSubFrame0.pack(side = LEFT, fill = Y)
+timelinestatusPosterProfilePic = Label(timelinestatusPosterDetailsSubFrame0, image = None, width = 128, height = 128, pady = 2, padx = 2)
+timelinestatusPosterProfilePic.pack(side = TOP)
+timelineaboutPosterButton = Button(timelinestatusPosterDetailsSubFrame0, relief = GROOVE, bg = "#82B8FF", activebackground = "#82B8FF", image = infoIcon)
+timelineaboutPosterButton.pack(side = TOP, fill = X)
+timelinestatusPosterDetailsFrame = Frame(timelineSlide)
+timelinestatusPosterDetailsFrame.pack(side = TOP, fill = X)
+timelinestatusPosterDetailsSubFrame1 = Frame(timelinestatusPosterDetailsFrame)
+timelinestatusPosterDetailsSubFrame1.pack(side = TOP, fill = X)
+timelinestatusPosterName = Combobox(timelinestatusPosterDetailsSubFrame1, text = "", font = font2, state = "readonly")
+timelinestatusPosterName.pack(side = LEFT)
+timelinestatusTimestamp = Label(timelinestatusPosterDetailsSubFrame1, text = "", font = font2, fg = "#1742B7", padx = 2)
+timelinestatusTimestamp.pack(side = LEFT)
+timelinestatusPosterDetailsSubFrame2 = Frame(timelinestatusPosterDetailsFrame, relief = FLAT)
+timelinestatusPosterDetailsSubFrame2.pack(side = TOP, fill = X)
+timelinestatusPosterDetailsSubFrame21 = Frame(timelinestatusPosterDetailsFrame, relief = FLAT)
+timelinestatusPosterDetailsSubFrame21.pack(side = TOP, fill = X)
+timelinestatusThumbsUpsCount = Label(timelinestatusPosterDetailsSubFrame1, text = "", font = font2, fg = "#32B71B", padx = 2, pady = 2)
+timelinestatusThumbsUpsCount.pack(side = LEFT)
+timelinenextInFeedButton = Button(timelinestatusPosterDetailsSubFrame1, image = nextIcon, state = DISABLED, relief = GROOVE)
+timelineprevInFeedButton = Button(timelinestatusPosterDetailsSubFrame1, image = prevIcon, state = DISABLED, relief = GROOVE)
+timelinenextInFeedButton.pack(side = RIGHT)
+timelineprevInFeedButton.pack(side = RIGHT)
+timelinethumbsUpButton = Button(timelinestatusPosterDetailsSubFrame21, fg = "#32B71B", font = font4, activeforeground = "#32B71B", text = "+Thumbs Up", state = DISABLED, relief = GROOVE)
+timelinethumbsUpButton.pack(side = LEFT)
+timelinestatusThumbsDownsCount = Label(timelinestatusPosterDetailsSubFrame1, text = "", font = font2, fg = "#E83759", padx = 2, pady = 2)
+timelinestatusThumbsDownsCount.pack(side = LEFT)
+timelinethumbsDownButton = Button(timelinestatusPosterDetailsSubFrame21, fg = "#E83759", activeforeground = "#E83759", font = font4, text = "-Thumbs Down", state = DISABLED, relief = GROOVE)
+timelinethumbsDownButton.pack(side = LEFT)
+timelinedeleteStatusButton = Button(timelinestatusPosterDetailsSubFrame21, fg = "#B5030C", activeforeground = "#B5030C", font = font4, text = "Delete Post", state = DISABLED, relief = GROOVE)
+timelinedeleteStatusButton.pack(side = LEFT)
+timelinestatusPosterDetailsSubFrame3 = Frame(timelinestatusPosterDetailsFrame, relief = FLAT)
+timelinestatusPosterDetailsSubFrame3.pack(side = TOP, fill = X)
+timelinestatusPosterDetailsSubFrame31 = Frame(timelinestatusPosterDetailsFrame, relief = FLAT)
+timelinestatusPosterDetailsSubFrame31.pack(side = TOP, fill = X)
+timelinestatusTextScrollBar = Scrollbar(timelinestatusPosterDetailsSubFrame3)
+timelinestatusTextScrollBar.pack(side = RIGHT, fill = Y)
+timelinestatusText = Text(timelinestatusPosterDetailsSubFrame3, font = font5, yscrollcommand = timelinestatusTextScrollBar.set, height = 4, state = DISABLED, wrap = WORD, padx = 12, pady = 12)
+timelinestatusTextScrollBar.config(command = timelinestatusText.yview)
+timelinestatusText.pack(side = LEFT, fill = X, expand = True)
+timelinestatusTaggedDisplay = Label(timelinestatusPosterDetailsSubFrame31, text = "", font = font4, pady = 2, fg = "#1241CE", relief = FLAT)
+timelinestatusTaggedDisplay.pack(side = LEFT, fill = X)
+timelinecommentsFrame = Frame(timelineSlide, relief = FLAT)
+timelinecommentsFrame.pack(side = LEFT, fill = BOTH, expand = True)
+timelinecommentsSubFrame1 = Frame(timelinecommentsFrame)
+timelinecommentsSubFrame1.pack(side = TOP, fill = X)
+timelinecommentsSubFrame2 = Frame(timelinecommentsFrame)
+timelinecommentsSubFrame2.pack(side = BOTTOM, fill = X)
+timelinecommentsLabel = Label(timelinecommentsSubFrame1, font = font4, justify = "left", text = "Comments: ")
+timelinecommentsLabel.pack(side = LEFT)
+timelinecommentsScrollBar = Scrollbar(timelinecommentsFrame)
+timelinecommentsScrollBar.pack(side = RIGHT, fill = Y)
+timelinecommentsBox = Text(timelinecommentsFrame, font = font5, yscrollcommand = timelinecommentsScrollBar.set, height = 4, state = DISABLED, wrap = WORD)
+timelinecommentsScrollBar.config(command = timelinecommentsBox.yview)
+timelinecommentsBox.pack(side = LEFT, fill = BOTH, expand = True)
+timelinewriteCommentBox = Entry(timelinecommentsSubFrame2, font = font2, state = DISABLED)
+timelinewriteCommentBox.pack(side = LEFT, fill = X, expand = True)
+timelinesubmitCommentButton = Button(timelinecommentsSubFrame2, text = "Submit Comment", font = font4, fg = "#1241CE", activeforeground = "#1241CE", state = DISABLED, relief = GROOVE)
+timelinesubmitCommentButton.pack(side = LEFT)
+
+feedicon = PhotoImage(file = "img/feed.gif")
+timelineicon = PhotoImage(file = "img/timeline.gif")
+explorationArea.add(newsFeedArea, text = "News Feed", image = feedicon, compound = LEFT, state = DISABLED)
+explorationArea.add(timelinesArea, text = "Timelines", image = timelineicon, compound = LEFT, state = DISABLED)
+
 def updateDisplayedStatus(index = 0):
 	try:
 		selectedUser = cc.getSelected()
@@ -1303,7 +1533,12 @@ def updateDisplayedStatus(index = 0):
 			deleteStatusButton.config(state = DISABLED)
 			statusPosterName.config(text = "")
 			statusTimestamp.config(text = "")
-			statusPosterProfilePic.config(image = selectedUser.getProfilePic(), state = DISABLED)
+			try:
+				profilepictureobj = PhotoImage(file = selectedUser.getProfilePic())
+			except:
+				profilepictureobj = PhotoImage(file = "img/defaultpic.gif")
+			statusPosterProfilePic.config(image = PhotoImage(file = profilepictureobj), state = DISABLED)
+			statusPosterProfilePic.image = profilepictureobj
 			statusThumbsUpsCount.config(text = "")
 			statusThumbsDownsCount.config(text = "")
 			statusTaggedDisplay.config(text = "")
@@ -1316,14 +1551,20 @@ def updateDisplayedStatus(index = 0):
 			commentsBox.config(state = NORMAL)
 			commentsBox.delete(1.0, END)
 			commentsBox.config(state = DISABLED)
+			writeCommentBox.config(state = NORMAL)
+			writeCommentBox.delete(0, END)
+			writeCommentBox.config(state = DISABLED)
+			submitCommentButton.config(state = DISABLED)
 			nextInFeedButton.config(state = DISABLED)
 			prevInFeedButton.config(state = DISABLED)
 			thumbsUpButton.config(state = DISABLED)
 			thumbsDownButton.config(state = DISABLED)
 			selectedUser.getNewsfeed().setCurrent(0)
+			aboutPosterButton.config(state = DISABLED)
 			return
-
+		
 		displayedPost = newsfeed[index]
+
 		poster = cc.getUserById(displayedPost.getPoster())
 		if poster == selectedUser:
 			deleteStatusButton.config(state = NORMAL)
@@ -1331,7 +1572,13 @@ def updateDisplayedStatus(index = 0):
 			deleteStatusButton.config(state = DISABLED)
 		statusPosterName.config(text = poster.getUsername())
 		statusTimestamp.config(text = displayedPost.getTime())
-		statusPosterProfilePic.config(image = poster.getProfilePic(), state = NORMAL)
+		try:
+			profilepictureobj = PhotoImage(file = poster.getProfilePic())
+		except:
+			profilepictureobj = PhotoImage(file = "img/defaultpic.gif")
+		statusPosterProfilePic.config(image = profilepictureobj, state = NORMAL)
+		statusPosterProfilePic.image = profilepictureobj
+		aboutPosterButton.config(state = NORMAL)
 		statusThumbsUpsCount.config(text = "+" + str(len(displayedPost.getThumbsUps())) + " Thumbs Ups")
 		statusThumbsDownsCount.config(text = "-" + str(len(displayedPost.getThumbsDowns())) + " Thumbs Downs")
 		statusText.config(state = NORMAL)
@@ -1353,6 +1600,9 @@ def updateDisplayedStatus(index = 0):
 			commentsBox.tag_config(commenterTag, foreground = "#1241CE")
 			lineNum += 1
 		commentsBox.config(state = DISABLED)
+		writeCommentBox.config(state = NORMAL)
+		writeCommentBox.delete(0, END)
+		submitCommentButton.config(state = NORMAL)
 		nextInFeedButton.config(state = NORMAL)
 		prevInFeedButton.config(state = NORMAL)
 		statusBox.delete(1.0, END)
@@ -1385,6 +1635,127 @@ def updateDisplayedStatus(index = 0):
 			thumbsDownButton.config(state = NORMAL)
 	except IndexError:
 		tkMessageBox.showerror("Index out of Range","It looks like you are trying to display a status that is out of range of the current user's newsfeed.")
+	except:
+		tkMessageBox.showerror("Epic Fail","That doesn't bode well. There was an unknown error and the status cannot be displayed.")
+
+def updateDisplayedTimelineStatus(event = None, index = 0, user = None):
+	try:
+		if user == None:
+			poster = cc.getUserByName(timelinestatusPosterName.get())
+		else:
+			poster = cc.getUserById(user)
+		newsfeed = poster.getStatuses()
+		selectedUser = cc.getSelected()
+		cc.getSelected().settimeLineSelectedIndex(index)
+		cc.getSelected().settimeLineSelectedFriend(poster.getUserID())
+		if newsfeed == []:
+			## No newsfeed to display
+			timelinedeleteStatusButton.config(state = DISABLED)
+			timelinestatusPosterName.config(text = "")
+			timelinestatusTimestamp.config(text = "")
+			try:
+				profilepictureobj = PhotoImage(file = poster.getProfilePic())
+			except:
+				profilepictureobj = PhotoImage(file = "img/defaultpic.gif")
+			timelinestatusPosterProfilePic.config(image = profilepictureobj, state = DISABLED)
+			timelinestatusPosterProfilePic.image = profilepictureobj
+			timelinestatusThumbsUpsCount.config(text = "")
+			timelinestatusThumbsDownsCount.config(text = "")
+			timelinestatusTaggedDisplay.config(text = "")
+			timelinestatusText.config(state = NORMAL)
+			timelinestatusText.delete(1.0, END)
+			timelinestatusText.insert(END, "It's lonely here.\n"+poster.getUsername()+" hasn't posted any status updates")
+			timelinestatusText.config(state = DISABLED)
+			timelinecommentsBox.config(state = NORMAL)
+			timelinecommentsBox.delete(1.0, END)
+			timelinecommentsBox.config(state = DISABLED)
+			timelinewriteCommentBox.config(state = NORMAL)
+			timelinewriteCommentBox.delete(0, END)
+			timelinewriteCommentBox.config(state = DISABLED)
+			timelinesubmitCommentButton.config(state = DISABLED)
+			timelinenextInFeedButton.config(state = DISABLED)
+			timelineprevInFeedButton.config(state = DISABLED)
+			timelinethumbsUpButton.config(state = DISABLED)
+			timelinethumbsDownButton.config(state = DISABLED)
+			poster.getNewsfeed().setCurrent(0)
+			timelinestatusPosterName.set(poster.getUsername())
+			return
+
+		displayedPost = newsfeed[index]
+		if poster == selectedUser:
+			timelinedeleteStatusButton.config(state = NORMAL)
+		else:
+			timelinedeleteStatusButton.config(state = DISABLED)
+		timelinestatusPosterName.config(text = poster.getUsername())
+		timelinestatusTimestamp.config(text = displayedPost.getTime())
+		try:
+			profilepictureobj = PhotoImage(file = poster.getProfilePic())
+		except:
+			profilepictureobj = PhotoImage(file = "img/defaultpic.gif")
+		timelinestatusPosterProfilePic.config(image = profilepictureobj, state = NORMAL)
+		timelinestatusPosterProfilePic.image = profilepictureobj
+		timelinestatusThumbsUpsCount.config(text = "+" + str(len(displayedPost.getThumbsUps())) + " Thumbs Ups")
+		timelinestatusThumbsDownsCount.config(text = "-" + str(len(displayedPost.getThumbsDowns())) + " Thumbs Downs")
+		timelinestatusText.config(state = NORMAL)
+		timelinestatusText.delete(1.0, END)
+		timelinecommentsBox.config(state = NORMAL)
+		timelinecommentsBox.delete(1.0, END)
+		lineNum = 1
+		for comment in displayedPost.getComments():
+			commenterID = comment.getPoster()
+			if commenterID != poster.getUserID():
+				commenterName = cc.getUserById(commenterID).getUsername()
+			else:
+				commenterName = "You"
+			commenterRange = len(commenterName) + 2
+			commenterTag = str(lineNum) + "commenter"
+			timelinecommentsBox.insert(END, commenterName + ": " + comment.getFText() + "\n")
+			timelinecommentsBox.tag_add(commenterTag, str(lineNum) + ".0", str(lineNum) + "." + str(commenterRange))
+			timelinecommentsBox.tag_config(commenterTag, foreground = "#1241CE")
+			lineNum += 1
+		timelinecommentsBox.config(state = DISABLED)
+		timelinewriteCommentBox.config(state = NORMAL)
+		timelinewriteCommentBox.delete(0, END)
+		timelinesubmitCommentButton.config(state = NORMAL)
+		timelinenextInFeedButton.config(state = NORMAL)
+		timelineprevInFeedButton.config(state = NORMAL)
+		timelinestatusText.insert(END, displayedPost.getFText())
+		smcolsep = "; "
+		taggedNames = list(cc.getUserById(x).getUsername() for x in displayedPost.getTags())
+		taggedNamesLen = len(taggedNames)
+		if taggedNamesLen <= 5:
+			taggedList = smcolsep.join(taggedNames)
+		else:
+			taggedList = taggedNames[0] + " and " + str(taggedNamesLen-1) + " more..."
+		if taggedList == "":
+			timelinestatusTaggedDisplay.config(text = "No one is tagged")
+		else:
+			timelinestatusTaggedDisplay.config(text = "Tagged: " + taggedList)
+		timelinestatusText.config(state = DISABLED)
+		if index <= 0:
+			timelineprevInFeedButton.config(state = DISABLED)
+		if index >= len(newsfeed) - 1:
+			timelinenextInFeedButton.config(state = DISABLED)
+		if selectedUser.getUserID() in displayedPost.getThumbsUps():
+			timelinethumbsUpButton.config(state = DISABLED)
+			timelinethumbsDownButton.config(state = NORMAL)
+		elif selectedUser.getUserID() in displayedPost.getThumbsDowns():
+			timelinethumbsDownButton.config(state = DISABLED)
+			timelinethumbsUpButton.config(state = NORMAL)
+		else:
+			timelinethumbsUpButton.config(state = NORMAL)
+			timelinethumbsDownButton.config(state = NORMAL)
+		timelinestatusPosterName.set(poster.getUsername())
+	except IndexError:
+		tkMessageBox.showerror("Index out of Range","It looks like you are trying to display a status that is out of range of the current user's timeline.")
+	except:
+		tkMessageBox.showerror("Epic Fail","That doesn't bode well. There was an unknown error and the status cannot be displayed.")
+
+def nextInTimeline():
+	updateDisplayedTimelineStatus(index = cc.getSelected().gettimeLineSelectedIndex() + 1, user = cc.getSelected().gettimeLineSelectedFriend())
+
+def prevInTimeline():
+	updateDisplayedTimelineStatus(index = cc.getSelected().gettimeLineSelectedIndex() - 1, user = cc.getSelected().gettimeLineSelectedFriend())
 
 def nextInNewsfeed():
 	updateDisplayedStatus(cc.getSelected().getNewsfeed().getCurrentIndex() + 1)
@@ -1402,6 +1773,16 @@ def submitComment(event = None):
 	updateDisplayedStatus(cc.getSelected().getNewsfeed().getCurrentIndex())
 	return
 
+def submitTimelineComment(event = None):
+	commentTxt = timelinewriteCommentBox.get().lstrip().rstrip().replace("\t","<tb>").replace("\n","").replace("<br>","").replace(":","<col>").replace("|","<bar>")
+	if commentTxt == "":
+		return
+	commentPoster = cc.getSelected().getUserID()
+	cc.getUserById(cc.getSelected().gettimeLineSelectedFriend()).getStatuses()[cc.getSelected().gettimeLineSelectedIndex()].comment(commentPoster, commentTxt)
+	timelinewriteCommentBox.delete(0, END)
+	updateDisplayedTimelineStatus(index = cc.getSelected().gettimeLineSelectedIndex(), user = cc.getSelected().gettimeLineSelectedFriend())
+	return
+
 def giveThumbsUp():
 	cc.getSelected().getNewsfeed().getCurrent().giveThumbsUp(cc.getSelected().getUserID())
 	updateDisplayedStatus(cc.getSelected().getNewsfeed().getCurrentIndex())
@@ -1409,6 +1790,14 @@ def giveThumbsUp():
 def giveThumbsDown():
 	cc.getSelected().getNewsfeed().getCurrent().giveThumbsDown(cc.getSelected().getUserID())
 	updateDisplayedStatus(cc.getSelected().getNewsfeed().getCurrentIndex())
+
+def giveTimelineThumbsUp():
+	cc.getUserById(cc.getSelected().gettimeLineSelectedFriend()).getStatuses()[cc.getSelected().gettimeLineSelectedIndex()].giveThumbsUp(cc.getSelected().getUserID())
+	updateDisplayedTimelineStatus(index = cc.getSelected().gettimeLineSelectedIndex())
+
+def giveTimelineThumbsDown():
+	cc.getUserById(cc.getSelected().gettimeLineSelectedFriend()).getStatuses()[cc.getSelected().gettimeLineSelectedIndex()].giveThumbsDown(cc.getSelected().getUserID())
+	updateDisplayedTimelineStatus(index = cc.getSelected().gettimeLineSelectedIndex())
 
 def postStatus(event = None):
 	text = statusBox.get(1.0, END).lstrip().rstrip()
@@ -1431,14 +1820,39 @@ def deleteStatus():
 		tkMessageBox.showerror("Error","Could not delete the status successfully.")
 	updateAwesomesauceControls()
 
+def deleteTimelineStatus():
+	if tkMessageBox.askyesno("Delete Status - Confirm","Are you sure you want to delete this status post by you? This action cannot be undone.",default = "no") != True:
+		return
+	currentUser = cc.getSelected()
+	try:
+		currentUser.deleteStatusByValue(currentUser.getStatuses()[currentUser.gettimeLineSelectedIndex()])
+	except:
+		tkMessageBox.showerror("Error","Could not delete the status successfully.")
+	updateAwesomesauceControls()
+
+def aboutUserInfo():
+	UserProfileInfoWindow(mainWindow, cc.getUserById(cc.getSelected().getNewsfeed().getCurrent().getPoster()))
+
+def aboutTimelineUserInfo():
+	UserProfileInfoWindow(mainWindow, cc.getUserById(cc.getSelected().gettimeLineSelectedFriend()))
+
 nextInFeedButton.config(command = nextInNewsfeed)
 prevInFeedButton.config(command = prevInNewsfeed)
+timelinenextInFeedButton.config(command = nextInTimeline)
+timelineprevInFeedButton.config(command = prevInTimeline)
 submitCommentButton.config(command = submitComment)
 writeCommentBox.bind("<Return>", submitComment)
 thumbsUpButton.config(command = giveThumbsUp)
 thumbsDownButton.config(command = giveThumbsDown)
 postStatusButton.config(command = postStatus)
 deleteStatusButton.config(command = deleteStatus)
+timelinestatusPosterName.bind("<<ComboboxSelected>>", updateDisplayedTimelineStatus)
+timelinewriteCommentBox.bind("<Return>", submitTimelineComment)
+timelinethumbsUpButton.config(command = giveTimelineThumbsUp)
+timelinethumbsDownButton.config(command = giveTimelineThumbsDown)
+timelinedeleteStatusButton.config(command = deleteTimelineStatus)
+aboutPosterButton.config(command = aboutUserInfo)
+timelineaboutPosterButton.config(command = aboutTimelineUserInfo)
 
 def changefriendshipstatus():
 	friendsListBoxSelectedIndices = friendsListBox.curselection()
@@ -1449,7 +1863,8 @@ def changefriendshipstatus():
 	for name in friendsListBoxSelectedNames:
 		for friend in selectedUserFriends:
 			if cc.getUserById(friend.getFriendID()).getUsername() == name:
-				friendsListBoxSelectedObjs.append(friend)
+				if friend.getStatus() != "Requested":
+					friendsListBoxSelectedObjs.append(friend)
 				break
 	editwin = FriendshipEditWindow(selectedUser, friendsListBoxSelectedObjs, cc, updateAwesomesauceControls)
 	del editwin
@@ -1482,7 +1897,7 @@ unfriendButton.pack(side = TOP, fill = X)
 #newsFeedDisplay.pack(side=LEFT, fill=Y)
 
 def updateAwesomesauceControls(event = None):
-	## some windows must be withdrawn to avoid the Admin mixing up stuff
+	## some windows must be withdrawn to avoid the Admin's confusion and mixing up stuff
 	## >>>>>>>>>>>>>>>>>>>> CAUTION ! >>>>>>>>>>>>>>>>>>>>>>>
 	## >>>>>>>>>>>>>>>>>> Encapsulation overridden >>>>>>>>>>
 	LoginWindow.loginwindow.withdraw()
@@ -1491,6 +1906,12 @@ def updateAwesomesauceControls(event = None):
 	FriendAddWindow.friendrequestbox.withdraw()
 	ConversationWindow.box.withdraw()
 	ConversationWindow.newConversationBox.withdraw()
+	if NotificationsWindow.currentWin != None:
+		NotificationsWindow.currentWin.destroy()
+		NotificationsWindow.currentWin = None
+	if UserProfileInfoWindow.currentWin != None:
+		UserProfileInfoWindow.currentWin.destroy()
+		UserProfileInfoWindow.currentWin = None
 	## >>>>>>>>>>>>>>>>>> Encapsulation overridden >>>>>>>>>>
 	## >>>>>>>>>>>>>>>>>>>> END BLOCK ! >>>>>>>>>>>>>>>>>>>>>
 	
@@ -1507,12 +1928,18 @@ def updateAwesomesauceControls(event = None):
 	nameBox.config(text = selectedUser.getUsername())
 	passwordBox.config(text = selectedUser.getPassword())
 
-	profilePicture.config(image = selectedUser.getProfilePic())
+	try:
+		profilepictureobj = PhotoImage(file = selectedUser.getProfilePic())
+	except:
+		profilepictureobj = PhotoImage(file = "img/defaultpic.gif")
+	profilePicture.config(image = profilepictureobj)
+	profilePicture.image = profilepictureobj
 	profileName.config(text = selectedUser.getUsername())
 	changeFriendshipStatusButton.config(state = DISABLED, bg = "#C0C0C0", activebackground = "#C0C0C0", text = "Change Status")
 	unfriendButton.config(state = DISABLED, bg = "#C0C0C0", activebackground = "#C0C0C0", text = "Unfriend")
 	if selectedUser.isLoggedIn() == False:
 		profileSubLabel1.config(text = "Log in to your account below.", font = font2, fg = "black")
+		statusBoxTaggingHint.config(text = "")
 		profileSubLabel2.config(text = "")
 		profileSubLabel3.config(text = "")
 		profileSubLabel4.config(text = "")
@@ -1523,37 +1950,16 @@ def updateAwesomesauceControls(event = None):
 		nextInFeedButton.config(state = DISABLED)
 		prevInFeedButton.config(state = DISABLED)
 		friendshipStatusLabel.config(text = "")
-		friendshipGroupLabel.config(text = "")
 		friendNameLabel.config(text = "")
-		statusPosterName.config(text = "")
-		commentsLabel.config(text = "")
-		statusTimestamp.config(text = "")
-		statusPosterProfilePic.config(image = selectedUser.getProfilePic(), state = DISABLED)
-		statusThumbsUpsCount.config(text = "")
-		statusThumbsDownsCount.config(text = "")
-		statusTaggedDisplay.config(text = "")
-		statusText.config(state = NORMAL)
-		statusBox.config(state = NORMAL)
-		statusText.delete(1.0, END)
-		statusBox.delete(1.0, END)
-		statusText.config(state = DISABLED)
-		statusBox.config(state = DISABLED)
-		commentsBox.config(state = NORMAL)
-		commentsBox.delete(1.0, END)
-		commentsBox.config(state = DISABLED)
-		writeCommentBox.config(state = NORMAL)
-		writeCommentBox.delete(0, END)
-		writeCommentBox.config(state = DISABLED)
-		submitCommentButton.config(state = DISABLED)
-		thumbsUpButton.config(state = DISABLED)
-		thumbsDownButton.config(state = DISABLED)
-		deleteStatusButton.config(state = DISABLED)
 		autologinButton.config(state = NORMAL)
+		explorationArea.tab(0, state = DISABLED)
+		explorationArea.tab(1, state = DISABLED)
 		postStatusButton.config(state = DISABLED, bg = "#C0C0C0", activebackground = "#C0C0C0")
 		loginoutButton.config(text = "Log In", state=NORMAL, activebackground = "#004A7F", bg = "#004A7F")
 		profileSettingsButton.config(state = DISABLED, bg = "#C0C0C0", activebackground = "#C0C0C0")
 		addFriendButton.config(state = DISABLED, bg = "#C0C0C0", activebackground = "#C0C0C0")
 		vewConversationsButton.config(state = DISABLED, bg = "#C0C0C0", activebackground = "#C0C0C0")
+		notificationsButton.config(state = DISABLED, bg = "#C0C0C0", activebackground = "#C0C0C0", text = "View Notifications [0]")
 	else:
 		gender = selectedUser.getGender()
 		profileSubLabel1.config(text = "Gender: " + gender)
@@ -1564,33 +1970,41 @@ def updateAwesomesauceControls(event = None):
 		else:
 			profileSubLabel1.config(fg = "#A0A0A0")
 		
-		separator = " // "
+		separator = "; "
 		profileSubLabel2.config(text = "Age: " + str(selectedUser.getAge()))
 		profileSubLabel3.config(text = "Birthday: " + str(selectedUser.getBday()))
 		profileSubLabel4.config(text = "Job History: " + separator.join(selectedUser.getJobHistory()))
 		profileSubLabel5.config(text = "Education: " + separator.join(selectedUser.getEducationHistory()))
 		friendsListLabel.config(text = "Your Friends:")
+		statusBoxTaggingHint.config(text = "(To tag a user, surround their username with asterisks. Ex. 'Hello, *Luke*')")
 		friendNameLabel.config(text = "Hint: Select a Friend above")
-		profileSettingsButton.config(state = NORMAL, bg = "#00A3E8", activebackground = "#00A3E8")
-		addFriendButton.config(state = NORMAL, bg = "#00A3E8", activebackground = "#00A3E8")
-		vewConversationsButton.config(state = NORMAL, bg = "#00A3E8", activebackground = "#00A3E8")
-		commentsLabel.config(text = "Comments: ")
+		profileSettingsButton.config(state = NORMAL, bg = "#215CFF", activebackground = "#215CFF")
+		addFriendButton.config(state = NORMAL, bg = "#215CFF", activebackground = "#215CFF")
+		vewConversationsButton.config(state = NORMAL, bg = "#215CFF", activebackground = "#215CFF")
+		notificationsButton.config(state = NORMAL, bg = "#215CFF", activebackground = "#215CFF", text = "View Notifications [" + str(len(list(x for x in selectedUser.getNotifications() if x.isRead() == False))) + "]")
 		friendshipStatusLabel.config(text = "")
-		friendshipGroupLabel.config(text = "")
 		friendsListBox.config(state = NORMAL)
 		autologinButton.config(state = DISABLED)
 		## clear the friend list box first
 		friendsListBox.delete(0, END)
+		flist = [] ## save for later use
 		for friend in selectedUser.getFriends():
-			friendsListBox.insert(END, cc.getUserById(friend.getFriendID()).getUsername())
-		loginoutButton.config(text = "Log Out", state=NORMAL, activebackground = "dark red", bg = "dark red")
+			fname = cc.getUserById(friend.getFriendID()).getUsername()
+			friendsListBox.insert(END, fname)
+			if friend.getStatus() not in ["Pending", "Requested", "Hidden Updates"]:
+				flist.append(fname)
+		timelinestatusPosterName.config(values = [selectedUser.getUsername()] + flist)
+		timelinestatusPosterName.set(selectedUser.getUsername())
+		loginoutButton.config(text = "Log Out", state=NORMAL, activebackground = "#FA6900", bg = "#FA6900")
 		## display newsfeed
 		cc.aggregateNewsfeedById(selectedUser.getUserID())
 		updateDisplayedStatus(0)
-		writeCommentBox.config(state = NORMAL)
-		writeCommentBox.delete(0, END)
-		submitCommentButton.config(state = NORMAL)
 		postStatusButton.config(state = NORMAL, bg = "#215CFF", activebackground = "#215CFF")
+		explorationArea.tab(0, state = NORMAL)
+		explorationArea.tab(1, state = NORMAL)
+		explorationArea.select(0)
+		timelinestatusPosterName.set(selectedUser.getUsername())
+		updateDisplayedTimelineStatus()
 
 def updateFriendshipControls(event = None):
 	## get currently selected POV user
@@ -1619,17 +2033,10 @@ def updateFriendshipControls(event = None):
 		## More than one friend is selected;
 		## see if their statuses, etc. are all the same
 		firstStat = friendsListBoxSelected[0].getStatus()
-		firstGroup = friendsListBoxSelected[0].getGroups()
 		## The statuses, etc. are all the same if they are all equal to the first one
 		for x in friendsListBoxSelected:
 			if x.getStatus() != firstStat:
 				samestatuses = False
-				break
-			else:
-				continue
-		for x in friendsListBoxSelected:
-			if x.getGroups() != firstGroup:
-				samegroups = False
 				break
 			else:
 				continue
@@ -1646,15 +2053,6 @@ def updateFriendshipControls(event = None):
 				unfriendButton.config(state = NORMAL, bg = "#FF9B63", activebackground = "#FF9B63", text = "Cancel Request")
 		else:
 			friendshipStatusLabel.config(text = "Status: (Several)")
-		if samegroups == True:
-			grouplist = friendsListBoxSelected[0].getGroups()
-			if grouplist != list():
-				groups = separator.join(grouplist)
-			else:
-				groups = "<None>"
-			friendshipGroupLabel.config(text = "Groups: (All) " + groups)
-		else:
-			friendshipGroupLabel.config(text = "Groups: (Several)")
 	else:
 		## Only one user is selected
 		grouplist = friendsListBoxSelected[0].getGroups()
@@ -1665,13 +2063,31 @@ def updateFriendshipControls(event = None):
 		friendNameLabel.config(text = cc.getUserById(friendsListBoxSelected[0].getFriendID()).getUsername())
 		stat = friendsListBoxSelected[0].getStatus()
 		friendshipStatusLabel.config(text = "Status: " + stat)
-		friendshipGroupLabel.config(text = "Groups: " + groups)
 		if stat == "Pending":
 			changeFriendshipStatusButton.config(state = NORMAL, bg = "#FF9B63", activebackground = "#FF9B63", text = "Approve")
 			unfriendButton.config(state = NORMAL, bg = "#FF9B63", activebackground = "#FF9B63", text = "Deny")
 		elif stat == "Requested":
 			changeFriendshipStatusButton.config(state = DISABLED, bg = "#C0C0C0", activebackground = "#C0C0C0", text = "Awaiting Approval")
 			unfriendButton.config(state = NORMAL, bg = "#FF9B63", activebackground = "#FF9B63", text = "Cancel Request")
+
+
+## Citation:
+## The openManual() function below is based on an answer on StackOverflow posted by Stack Exchange user
+## 'user4815162342'. It was retrieved from the page http://stackoverflow.com/questions/17317219/is-there-an-platform-independent-equivalent-of-os-startfile
+## The function uses standard Python modules and has been modified here as seen appropriate
+
+def openManual():
+	filename = "docs\user_manual.pdf"
+	try:
+		if sys.platform == "win32":
+			os.startfile(filename)
+		else:
+			opener ="open" if sys.platform == "darwin" else "xdg-open"
+			subprocess.call([opener, filename])
+	except WindowsError:
+		tkMessageBox.showerror("404 - Manual Not Available","The User Manual could not be opened successfully. The file might have been deleted or has been placed under restricted persmission access. You can still email the developer at vffiestada@upd.edu.ph for questions.")
+	except:
+		tkMessageBox.showerror("Epic Fail","The User Manual could not be opened successfully due to an unknown error. You can still email the developer at vffiestada@upd.edu.ph for questions.")
 
 ## NOTE: WHEN CHANGING FRIENDSHIP STATUS, IGNORE [Requested] Types
 
@@ -1689,13 +2105,12 @@ usermenu.add_command(label="Log in/out", command=logInOut)
 menubar.add_cascade(label="User", menu=usermenu)
 
 helpmenu = Menu(menubar, tearoff=False)
-helpmenu.add_command(label="Manual")
+helpmenu.add_command(label="Manual", command = openManual)
 helpmenu.add_command(label="About", command=menu_showinfobox)
 
 menubar.add_cascade(label="Help", menu=helpmenu)
 
 mainWindow.config(menu = menubar)
 mainWindow.state("zoomed")
+mainWindow.protocol("WM_DELETE_WINDOW", end)
 mainWindow.mainloop()
-
-cc.saveDB()

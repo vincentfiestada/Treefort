@@ -20,8 +20,6 @@ class UserProxy:
 		##configDB is the database that contains additional details about the user
 		##the UserProxy will use it to initialize the actual User object
 		self.configDB = configDB
-		if self.configDB.getDict() == dict():
-			self.configDB.importDB()
 
 	def isLoggedIn(self):
 		return self.loggedIn
@@ -173,6 +171,21 @@ class UserProxy:
 			self.createActiveUser()
 		self.actualuser.exitConversation(conversationtoexit)
 
+	def getNotifications(self):
+		if self.actualuser == None:
+			self.createActiveUser()
+		return self.actualuser.getNotifications()
+	
+	def addNotification(self, text):
+		if self.actualuser == None:
+			self.createActiveUser()
+		self.actualuser.addNotification(text)
+
+	def getNotificationByIndex(self, index):
+		if self.actualuser == None:
+			self.createActiveUser()
+		return self.actualuser.getNotificationByIndex(index)
+
 	def getStatuses(self):
 		if self.actualuser == None:
 			self.createActiveUser()
@@ -203,10 +216,33 @@ class UserProxy:
 			self.createActiveUser()
 		self.actualuser.setNewsfeed(newsfeed)
 
+	def getConfigDB(self):
+		return self.configDB
+
 	def editConfigDB(self, newDB):
 		self.configDB = newDB
 		self.configDB.importDB()
 
+	def gettimeLineSelectedFriend(self):
+		if self.actualuser == None:
+			self.createActiveUser()
+		return self.actualuser.gettimeLineSelectedFriend()
+	
+	def gettimeLineSelectedIndex(self):
+		if self.actualuser == None:
+			self.createActiveUser()
+		return self.actualuser.gettimeLineSelectedIndex()
+	
+	def settimeLineSelectedFriend(self, uid):
+		if self.isLoggedIn() != False:
+			self.actualuser.settimeLineSelectedFriend(uid)
+	
+	def settimeLineSelectedIndex(self, index):
+		if self.isLoggedIn() != False:
+			self.actualuser.settimeLineSelectedIndex(index)
+
 	def createActiveUser(self):
+		if self.configDB.getDict() == dict():
+			self.configDB.importDB()
 		configDetails = self.configDB.getDict()
-		self.actualuser = ActiveUser(uid=self.userID ,username=self.login_username, password=self.login_password, gender=configDetails['gender'], bday=configDetails['bday'], jobs=configDetails['jobs'], edu=configDetails['education'])
+		self.actualuser = ActiveUser(uid=self.userID ,username=self.login_username, password=self.login_password, gender=configDetails['gender'], bday=configDetails['bday'], jobs=configDetails['jobs'], edu=configDetails['education'], notifs = configDetails['notifs'])
