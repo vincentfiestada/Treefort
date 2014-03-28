@@ -1,9 +1,6 @@
 from Tkinter import *
 from ttk import Combobox, Notebook
 from controlcenter import *
-from os import startfile
-from sys import platform
-from subprocess import call
 import tkMessageBox, tkFileDialog
 import webbrowser
 
@@ -1657,127 +1654,6 @@ def updateDisplayedStatus(index = 0):
 			thumbsDownButton.config(state = NORMAL)
 	except IndexError:
 		tkMessageBox.showerror("Index out of Range","It looks like you are trying to display a status that is out of range of the current user's newsfeed.")
-	except:
-		tkMessageBox.showerror("Epic Fail","That doesn't bode well. There was an unknown error and the status cannot be displayed.")
-
-def updateDisplayedTimelineStatus(event = None, index = 0, user = None):
-	try:
-		if user == None:
-			poster = cc.getUserByName(timelinestatusPosterName.get())
-		else:
-			poster = cc.getUserById(user)
-		newsfeed = poster.getStatuses()
-		selectedUser = cc.getSelected()
-		cc.getSelected().settimeLineSelectedIndex(index)
-		cc.getSelected().settimeLineSelectedFriend(poster.getUserID())
-		if newsfeed == []:
-			## No newsfeed to display
-			timelinedeleteStatusButton.config(state = DISABLED)
-			timelinestatusPosterName.config(text = "")
-			timelinestatusTimestamp.config(text = "")
-			try:
-				profilepictureobj = PhotoImage(file = poster.getProfilePic())
-			except:
-				profilepictureobj = PhotoImage(file = "img/defaultpic.gif")
-			timelinestatusPosterProfilePic.config(image = profilepictureobj, state = DISABLED)
-			timelinestatusPosterProfilePic.image = profilepictureobj
-			timelinestatusThumbsUpsCount.config(text = "")
-			timelinestatusThumbsDownsCount.config(text = "")
-			timelinestatusTaggedDisplay.config(text = "")
-			timelinestatusText.config(state = NORMAL)
-			timelinestatusText.delete(1.0, END)
-			timelinestatusText.insert(END, "It's lonely here.\n"+poster.getUsername()+" hasn't posted any status updates")
-			timelinestatusText.config(state = DISABLED)
-			timelinecommentsBox.config(state = NORMAL)
-			timelinecommentsBox.delete(1.0, END)
-			timelinecommentsBox.config(state = DISABLED)
-			timelinewriteCommentBox.config(state = NORMAL)
-			timelinewriteCommentBox.delete(0, END)
-			timelinewriteCommentBox.config(state = DISABLED)
-			timelinesubmitCommentButton.config(state = DISABLED)
-			timelinenextInFeedButton.config(state = DISABLED)
-			timelineprevInFeedButton.config(state = DISABLED)
-			timelinethumbsUpButton.config(state = DISABLED)
-			timelinethumbsDownButton.config(state = DISABLED)
-			poster.getNewsfeed().setCurrent(0)
-			timelinestatusPosterName.set(poster.getUsername())
-			return
-
-		displayedPost = newsfeed[index]
-		if poster == selectedUser:
-			timelinedeleteStatusButton.config(state = NORMAL)
-		else:
-			timelinedeleteStatusButton.config(state = DISABLED)
-		timelinestatusPosterName.config(text = poster.getUsername())
-		timelinestatusTimestamp.config(text = displayedPost.getTime())
-		try:
-			profilepictureobj = PhotoImage(file = poster.getProfilePic())
-		except:
-			profilepictureobj = PhotoImage(file = "img/defaultpic.gif")
-		timelinestatusPosterProfilePic.config(image = profilepictureobj, state = NORMAL)
-		timelinestatusPosterProfilePic.image = profilepictureobj
-		timelinestatusThumbsUpsCount.config(text = "+" + str(len(displayedPost.getThumbsUps())) + " Thumbs Ups")
-		timelinestatusThumbsDownsCount.config(text = "-" + str(len(displayedPost.getThumbsDowns())) + " Thumbs Downs")
-		timelinestatusText.config(state = NORMAL)
-		timelinestatusText.delete(1.0, END)
-		timelinecommentsBox.config(state = NORMAL)
-		timelinecommentsBox.delete(1.0, END)
-		lineNum = 1
-		for comment in displayedPost.getComments():
-			commenterID = comment.getPoster()
-			if commenterID != poster.getUserID():
-				commenterName = cc.getUserById(commenterID).getUsername()
-			else:
-				commenterName = "You"
-			commenterRange = len(commenterName) + 2
-			commenterTag = str(lineNum) + "commenter"
-			timelinecommentsBox.insert(END, commenterName + ": " + comment.getFText() + "\n")
-			timelinecommentsBox.tag_add(commenterTag, str(lineNum) + ".0", str(lineNum) + "." + str(commenterRange))
-			timelinecommentsBox.tag_config(commenterTag, foreground = "#1241CE")
-			lineNum += 1
-		timelinecommentsBox.config(state = DISABLED)
-		timelinewriteCommentBox.config(state = NORMAL)
-		timelinewriteCommentBox.delete(0, END)
-		timelinesubmitCommentButton.config(state = NORMAL)
-		timelinenextInFeedButton.config(state = NORMAL)
-		timelineprevInFeedButton.config(state = NORMAL)
-		timelinestatusText.insert(END, displayedPost.getFText())
-		smcolsep = "; "
-		taggedNames = list(cc.getUserById(x).getUsername() for x in displayedPost.getTags())
-		taggedNamesLen = len(taggedNames)
-		if taggedNamesLen <= 5:
-			taggedList = smcolsep.join(taggedNames)
-		else:
-			taggedList = taggedNames[0] + " and " + str(taggedNamesLen-1) + " more..."
-		if taggedList == "":
-			timelinestatusTaggedDisplay.config(text = "No one is tagged")
-		else:
-			timelinestatusTaggedDisplay.config(text = "Tagged: " + taggedList)
-		timelinestatusText.config(state = DISABLED)
-		if index <= 0:
-			timelineprevInFeedButton.config(state = DISABLED)
-		if index >= len(newsfeed) - 1:
-			timelinenextInFeedButton.config(state = DISABLED)
-		if selectedUser.getUserID() in displayedPost.getThumbsUps():
-			timelinethumbsUpButton.config(state = DISABLED)
-			timelinethumbsDownButton.config(state = NORMAL)
-		elif selectedUser.getUserID() in displayedPost.getThumbsDowns():
-			timelinethumbsDownButton.config(state = DISABLED)
-			timelinethumbsUpButton.config(state = NORMAL)
-		else:
-			timelinethumbsUpButton.config(state = NORMAL)
-			timelinethumbsDownButton.config(state = NORMAL)
-		timelinestatusPosterName.set(poster.getUsername())
-	except IndexError:
-		tkMessageBox.showerror("Index out of Range","It looks like you are trying to display a status that is out of range of the current user's timeline.")
-	except:
-		tkMessageBox.showerror("Epic Fail","That doesn't bode well. There was an unknown error and the status cannot be displayed.")
-
-def nextInTimeline():
-	updateDisplayedTimelineStatus(index = cc.getSelected().gettimeLineSelectedIndex() + 1, user = cc.getSelected().gettimeLineSelectedFriend())
-
-def prevInTimeline():
-	updateDisplayedTimelineStatus(index = cc.getSelected().gettimeLineSelectedIndex() - 1, user = cc.getSelected().gettimeLineSelectedFriend())
 
 def updateDisplayedTimelineStatus(event = None, index = 0, user = None):
 	try:
