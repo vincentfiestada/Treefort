@@ -5,3 +5,7 @@ Bday-Year: 1997
 Jobs: Champion of the Candy Kingdom|King of the Goblin Kingdom
 Education: Wizard School
 Notifications: 
+<<<<<<< HEAD
+=======
+Your close friend Jake the Dog has a new profile picture.
+>>>>>>> 16ac86d691ecb2c70c49c9bafaba280b3a94c9af
