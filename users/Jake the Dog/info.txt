@@ -1,7 +1,0 @@
-Gender: M
-Bday-Month: 9
-Bday-Day: 11
-Bday-Year: 1993
-Jobs: Thief|Hero|Dad
-Education: 
-Notifications: 

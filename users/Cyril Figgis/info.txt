@@ -1,7 +1,0 @@
-Gender: M
-Bday-Month: 10
-Bday-Day: 16
-Bday-Year: 1978
-Jobs: Secret Agent at ISIS|Financial Department Head at ISIS
-Education: 
-Notifications: 

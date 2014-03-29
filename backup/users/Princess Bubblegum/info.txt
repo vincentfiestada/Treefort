@@ -1,6 +1,0 @@
-Gender: F
-Bday-Month: 12
-Bday-Day: 13
-Bday-Year: 1986
-Jobs: Princess of Candy Kingdom
-Education: Academy of Confectionary Science

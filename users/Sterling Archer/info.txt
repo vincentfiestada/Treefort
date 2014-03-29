@@ -1,7 +1,0 @@
-Gender: M
-Bday-Month: 3
-Bday-Day: 3
-Bday-Year: 1976
-Jobs: Drug Dealer|Owner at Bob's Burgers|Secret Agent at ISIS
-Education: Princeton University
-Notifications: 

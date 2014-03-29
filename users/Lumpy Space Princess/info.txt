@@ -1,7 +1,0 @@
-Gender: F
-Bday-Month: 6
-Bday-Day: 24
-Bday-Year: 1995
-Jobs: Princess of Lumpy Space
-Education: Promcoming School
-Notifications: 

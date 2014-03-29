@@ -1,7 +1,0 @@
-Gender: F
-Bday-Month: 6
-Bday-Day: 29
-Bday-Year: 1978
-Jobs: Secret Agent at ISIS
-Education: 
-Notifications: 
